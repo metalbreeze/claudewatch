@@ -12,6 +12,9 @@ final class StatusItemController {
     /// Called when the user chooses "Settings…" from the right-click menu.
     var onSettings: (() -> Void)?
 
+    /// Called when the user chooses "Import from cURL…" from the right-click menu.
+    var onImportCURL: (() -> Void)?
+
     init() {
         if let button = item.button {
             button.title = "⌬ ⏳"
@@ -38,6 +41,12 @@ final class StatusItemController {
 
     private func showRightClickMenu() {
         let menu = NSMenu()
+        let importItem = NSMenuItem(title: "Import from cURL…",
+                                    action: #selector(triggerImportCURL),
+                                    keyEquivalent: "i")
+        importItem.target = self
+        menu.addItem(importItem)
+        menu.addItem(.separator())
         let settings = NSMenuItem(title: "Settings…", action: #selector(triggerSettings), keyEquivalent: ",")
         settings.target = self
         menu.addItem(settings)
@@ -51,6 +60,10 @@ final class StatusItemController {
 
     @objc private func triggerSettings() {
         onSettings?()
+    }
+
+    @objc private func triggerImportCURL() {
+        onImportCURL?()
     }
 
     /// Update the menu bar text and tooltip together so they never drift.

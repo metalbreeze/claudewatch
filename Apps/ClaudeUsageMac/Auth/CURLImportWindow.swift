@@ -1,0 +1,104 @@
+import AppKit
+import SwiftUI
+import UsageCore
+
+@MainActor
+enum CURLImportWindowController {
+    private static var window: NSWindow?
+
+    static func show(ctx: AppContext, onSuccess: @escaping () -> Void) {
+        if let w = window {
+            w.makeKeyAndOrderFront(nil)
+            return
+        }
+        let view = CURLImportView { imp in
+            do {
+                try CURLImportApplier.apply(imp, ctx: ctx)
+                window?.close()
+                window = nil
+                onSuccess()
+            } catch {
+                let alert = NSAlert()
+                alert.messageText = "Import failed"
+                alert.informativeText = "\(error)"
+                alert.alertStyle = .warning
+                alert.runModal()
+            }
+        }
+        let host = NSHostingController(rootView: view)
+        let w = NSWindow(contentViewController: host)
+        w.title = "Import from cURL"
+        w.styleMask = [.titled, .closable, .resizable]
+        w.setContentSize(NSSize(width: 640, height: 540))
+        w.center()
+        w.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        window = w
+    }
+}
+
+private struct CURLImportView: View {
+    @State private var pasted = ""
+    @State private var error: String?
+    let onImport: (CURLImport) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Import endpoint + cookies from a real browser")
+                .font(.title3.bold())
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("How to grab the cURL:")
+                    .font(.subheadline.weight(.semibold))
+                Text("1. In Safari or Chrome, sign in to claude.ai.")
+                Text("2. Open https://claude.ai/settings/usage with DevTools open (Cmd-Option-I).")
+                Text("3. Click the Network tab, then reload the page.")
+                Text("4. Look for the JSON request that returns usage data (probably under /api/...).")
+                Text("5. Right-click that request → Copy → Copy as cURL.")
+                Text("6. Paste below and click Import.")
+            }
+            .font(.system(size: 11))
+            .foregroundStyle(.secondary)
+
+            TextEditor(text: $pasted)
+                .font(.system(size: 11, design: .monospaced))
+                .frame(minHeight: 260)
+                .padding(6)
+                .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 6))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(Color.secondary.opacity(0.3), lineWidth: 1))
+
+            if let error {
+                Text("⚠︎ \(error)")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.red)
+            }
+
+            HStack {
+                Spacer()
+                Button("Cancel") {
+                    NSApp.keyWindow?.close()
+                }
+                .keyboardShortcut(.cancelAction)
+                Button("Import") {
+                    do {
+                        let parsed = try CURLParser.parse(pasted)
+                        if parsed.cookies["sessionKey"] == nil {
+                            error = "No 'sessionKey' cookie found in the cURL — make sure the request was made while signed in to claude.ai."
+                            return
+                        }
+                        error = nil
+                        onImport(parsed)
+                    } catch {
+                        self.error = "\(error)"
+                    }
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(pasted.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+        .padding(20)
+        .frame(minWidth: 600, minHeight: 500)
+    }
+}

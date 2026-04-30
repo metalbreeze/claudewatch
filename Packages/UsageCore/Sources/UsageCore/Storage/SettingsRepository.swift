@@ -13,6 +13,7 @@ public struct SettingsRepository {
         case quietHoursStartMin       // "1320" (22:00)
         case quietHoursEndMin         // "480"  (08:00)
         case lastCloudSyncTs          // unix seconds
+        case endpointConfig           // discovered claude.ai usage URL (Task 32)
     }
 
     public func get(_ key: Key) throws -> String? {

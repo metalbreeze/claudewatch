@@ -13,8 +13,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             ctx = try AppContext()
             statusItem = StatusItemController()
+            // Wire menu actions early so they work even before login.
+            statusItem.onSettings = { [weak self] in
+                guard let self else { return }
+                SettingsWindowController.show(ctx: self.ctx)
+            }
+            statusItem.onImportCURL = { [weak self] in
+                guard let self else { return }
+                CURLImportWindowController.show(ctx: self.ctx) { [weak self] in
+                    self?.startPolling()
+                }
+            }
             if (try? ctx.cookieStore.load()) == nil {
-                LoginWindowController.show(ctx: ctx) { [weak self] in
+                // Default to the cURL-paste flow rather than the
+                // (mostly broken) embedded WKWebView login.
+                statusItem.setText("⌬ ⏳", tooltip: "Right-click → Import from cURL…")
+                CURLImportWindowController.show(ctx: ctx) { [weak self] in
                     self?.startPolling()
                 }
             } else {
@@ -27,16 +41,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func startPolling() {
+        // Reset any previous timer so re-imports cleanly restart polling.
+        ctx.pollingTimer?.stop()
+        ctx.pollingTimer = nil
+
         Task { @MainActor in
-            // Without a discovered endpoint (Task 32), `ScraperFactory`
-            // falls back to the HTML stub which throws — that's expected
-            // until the endpoint is wired. The status item shows the
-            // resulting error in its tooltip.
             guard let pkg = try? ctx.cookieStore.load() else {
-                statusItem.setText("⌬ ⚠", tooltip: "Not signed in")
+                statusItem.setText("⌬ ⚠", tooltip: "Not signed in — right-click → Import from cURL…")
                 return
             }
-            let endpoint = EndpointConfig(jsonEndpoint: nil)
+            // Load persisted endpoint URL from settings (set by cURL import).
+            let endpointURL = (try? ctx.settings.get(.endpointConfig))
+                .flatMap { $0 }
+                .flatMap(URL.init(string:))
+            let endpoint = EndpointConfig(jsonEndpoint: endpointURL)
             let factory = ScraperFactory(config: endpoint, cookies: pkg)
             let dispatcher = NotificationDispatcher()
             Task { _ = await dispatcher.requestAuthorization() }
@@ -56,10 +74,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             statusItem.onClick = { [weak self] in
                 guard let self, let button = self.statusItem.item.button else { return }
                 self.popover?.toggle(from: button)
-            }
-            statusItem.onSettings = { [weak self] in
-                guard let self else { return }
-                SettingsWindowController.show(ctx: self.ctx)
             }
             await tick()  // immediate first poll
         }

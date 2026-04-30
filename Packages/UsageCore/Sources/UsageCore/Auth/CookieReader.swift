@@ -7,6 +7,15 @@ public struct CookiePackage: Codable, Equatable {
     public var userAgent: String
     public var all: [SerializedCookie]
 
+    public init(sessionKey: String?, cfClearance: String?, cfBm: String?,
+                userAgent: String, all: [SerializedCookie]) {
+        self.sessionKey = sessionKey
+        self.cfClearance = cfClearance
+        self.cfBm = cfBm
+        self.userAgent = userAgent
+        self.all = all
+    }
+
     public struct SerializedCookie: Codable, Equatable {
         public let name: String
         public let value: String
@@ -15,6 +24,16 @@ public struct CookiePackage: Codable, Equatable {
         public let isSecure: Bool
         public let isHTTPOnly: Bool
         public let expiresAt: Date?
+
+        public init(name: String, value: String,
+                    domain: String, path: String,
+                    isSecure: Bool, isHTTPOnly: Bool,
+                    expiresAt: Date?) {
+            self.name = name; self.value = value
+            self.domain = domain; self.path = path
+            self.isSecure = isSecure; self.isHTTPOnly = isHTTPOnly
+            self.expiresAt = expiresAt
+        }
     }
 }
 
