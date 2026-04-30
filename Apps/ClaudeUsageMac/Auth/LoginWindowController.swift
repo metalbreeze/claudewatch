@@ -1,13 +1,29 @@
 import AppKit
+import WebKit
 import UsageCore
 
-/// STUB — Task 31 replaces this with a real WKWebView-based login flow.
-/// For now, the AppDelegate calls `show(...)` whenever no Keychain cookie is
-/// present, but the stub immediately invokes `onComplete()` so the polling
-/// path (Task 30) can be exercised end-to-end before the real login lands.
 @MainActor
-enum LoginWindowController {
+final class LoginWindowController {
+    private static var currentWindow: NSWindow?
+
     static func show(ctx: AppContext, onComplete: @escaping () -> Void) {
-        onComplete()
+        let win = NSWindow(
+            contentRect: .init(x: 0, y: 0, width: 500, height: 700),
+            styleMask: [.titled, .closable, .miniaturizable],
+            backing: .buffered, defer: false)
+        win.title = "Sign in to claude.ai"
+        win.center()
+
+        let view = LoginWebView(onSuccess: { pkg in
+            try? ctx.cookieStore.save(pkg)
+            DispatchQueue.main.async {
+                win.close()
+                currentWindow = nil
+                onComplete()
+            }
+        })
+        win.contentView = view
+        win.makeKeyAndOrderFront(nil)
+        currentWindow = win
     }
 }
