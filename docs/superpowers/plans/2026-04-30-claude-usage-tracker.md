@@ -830,7 +830,11 @@ final class RetentionJobTests: XCTestCase {
     func test_rows_older_than_7_days_collapse_into_5min_buckets() throws {
         let dbq = try DatabaseQueue(); try Database.migrator.migrate(dbq)
         let repo = SnapshotRepository(dbq: dbq, deviceID: "d1")
-        let oldTs = Date().addingTimeInterval(-86400 * 8)
+        // Align oldTs to a 5-minute boundary so all 5 rows land in one bucket
+        // deterministically (60s spacing × 5 = 240s, fits in one 300s bucket).
+        let raw = Date().addingTimeInterval(-86400 * 8)
+        let oldTs = Date(timeIntervalSince1970:
+            Double(Int(raw.timeIntervalSince1970 / 300) * 300))
         for i in 0..<5 {
             try repo.insert(makeSnap(ts: oldTs.addingTimeInterval(Double(i) * 60), used5h: 1000 + i*10))
         }
@@ -840,7 +844,7 @@ final class RetentionJobTests: XCTestCase {
             try Row.fetchAll(db, sql: "SELECT * FROM snapshots_5min")
         }
         XCTAssertEqual(buckets.count, 1)
-        XCTAssertEqual(buckets[0]["bucket_count"] as Int, 5)
+        XCTAssertEqual(buckets[0]["bucket_count"] as Int64, 5)
         let raw = try dbq.read { db in
             try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM snapshots WHERE ts < ?",
                              arguments: [Int(Date().addingTimeInterval(-86400*7).timeIntervalSince1970)])!
