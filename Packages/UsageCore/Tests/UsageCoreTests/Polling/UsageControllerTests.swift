@@ -20,9 +20,34 @@ final class UsageControllerTests: XCTestCase {
         XCTAssertNotNil(latest)
         XCTAssertEqual(latest?.used5h, 1)
     }
+
+    func test_sync_called_at_most_once_per_300s() async throws {
+        let dbq = try DatabaseQueue(); try Database.migrator.migrate(dbq)
+        let snap = UsageSnapshot(timestamp: Date(), plan: .pro,
+            used5h: 1, ceiling5h: 100, resetTime5h: Date(),
+            usedWeek: 1, ceilingWeek: 1000, resetTimeWeek: Date(),
+            sourceVersion: "fake", raw: Data())
+        let sync = SpySync()
+        let controller = await UsageController(
+            scraper: FakeScraper(snap: snap),
+            snapshots: SnapshotRepository(dbq: dbq, deviceID: "d1"),
+            forecaster: LinearForecaster(),
+            sync: sync,
+            syncIntervalSeconds: 1) // shorten for test
+        try await controller.pollOnce()
+        try await controller.pollOnce()
+        try await Task.sleep(nanoseconds: 1_200_000_000)
+        try await controller.pollOnce()
+        XCTAssertEqual(sync.calls, 2, "first poll + post-1s")
+    }
 }
 struct FakeScraper: UsageScraper {
     let sourceVersion = "fake"
     let snap: UsageSnapshot
     func fetchSnapshot() async throws -> UsageSnapshot { snap }
+}
+
+final class SpySync: CloudKitSyncing {
+    var calls = 0
+    func uploadPending(snapshots: [UsageSnapshot]) async throws { calls += 1 }
 }

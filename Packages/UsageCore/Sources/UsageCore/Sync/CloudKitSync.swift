@@ -41,3 +41,13 @@ public final class CloudKitSync {
         }
     }
 }
+
+public protocol CloudKitSyncing {
+    func uploadPending(snapshots: [UsageSnapshot]) async throws
+}
+
+extension CloudKitSync: CloudKitSyncing {
+    public func uploadPending(snapshots: [UsageSnapshot]) async throws {
+        try await upload(snapshots)
+    }
+}
