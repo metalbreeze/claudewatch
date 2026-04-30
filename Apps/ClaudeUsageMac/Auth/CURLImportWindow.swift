@@ -87,10 +87,14 @@ private struct CURLImportView: View {
         }
         if !imp.url.path.lowercased().contains("usage") {
             return """
-            URL path doesn't look like a usage endpoint: \(imp.url.path)
-            On the claude.ai/settings/usage page, the right request \
-            usually has 'usage' in its path (e.g. \
-            /api/organizations/{id}/usage).
+            Wrong endpoint: \(imp.url.path)
+
+            We need the request to:
+              https://claude.ai/api/organizations/{your-org-uuid}/usage
+
+            Its response is JSON with fields like "five_hour" and \
+            "seven_day". Bootstrap, account, and analytics requests \
+            won't work.
             """
         }
         if imp.cookies["sessionKey"] == nil {
@@ -115,7 +119,11 @@ private struct CURLImportView: View {
                 // clicking it would open Chrome and hide this window.
                 Text(verbatim: "2. Open the URL  claude.ai/settings/usage  with DevTools open (Cmd-Option-I).")
                 Text("3. Click the Network tab, then reload the page.")
-                Text(verbatim: "4. Look for the JSON request that returns usage data (probably under /api/…).")
+                Text("4. Find the request whose URL looks like:")
+                Text(verbatim: "       https://claude.ai/api/organizations/{your-org-uuid}/usage")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(.primary)
+                Text(verbatim: "   The response is small JSON with fields like \"five_hour\" and \"seven_day\".")
                 Text("5. Right-click that request → Copy → Copy as cURL.")
                 Text("6. Paste below and click Import.")
                 Text("(This window stays on top while you switch to the browser.)")
