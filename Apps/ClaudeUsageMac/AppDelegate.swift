@@ -57,7 +57,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             try await c.pollOnce()
             render()
         } catch let e as ScrapeError {
-            statusItem.setText("⌬ ⚠", tooltip: "\(e)")
+            if e.requiresWebViewRefresh {
+                let ok = await HiddenChallengeView.refreshClearance(
+                    into: ctx.cookieStore, currentDeviceID: ctx.deviceID)
+                if ok {
+                    try? await c.pollOnce()
+                    render()
+                } else {
+                    statusItem.setText("⌬ ⚠", tooltip: "Cloudflare challenge unrecoverable")
+                }
+            } else if e.isAuthRelated {
+                statusItem.setText("⌬ ⚠", tooltip: "Session expired — open app to re-login")
+            } else {
+                statusItem.setText("⌬ ⚠", tooltip: "\(e)")
+            }
         } catch {
             statusItem.setText("⌬ ⚠", tooltip: "\(error)")
         }
