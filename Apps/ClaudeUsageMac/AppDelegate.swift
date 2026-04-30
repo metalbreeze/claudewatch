@@ -52,6 +52,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let self, let button = self.statusItem.item.button else { return }
                 self.popover?.toggle(from: button)
             }
+            statusItem.onSettings = { [weak self] in
+                guard let self else { return }
+                SettingsWindowController.show(ctx: self.ctx)
+            }
             await tick()  // immediate first poll
         }
     }
