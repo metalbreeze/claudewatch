@@ -15,6 +15,10 @@ final class HiddenChallengeView {
             let cfg = WKWebViewConfiguration()
             let webView = WKWebView(frame: .init(x: 0, y: 0, width: 1, height: 1),
                                     configuration: cfg)
+            // Match the Safari UA used in the visible login WebView so
+            // Cloudflare's fingerprint stays consistent across both
+            // surfaces.
+            webView.customUserAgent = LoginWebView.safariUserAgent
             // Hold a strong reference until the navigation completes.
             var holder: WKWebView? = webView
 
