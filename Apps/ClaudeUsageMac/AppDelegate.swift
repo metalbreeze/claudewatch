@@ -7,6 +7,7 @@ import UsageCore
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var ctx: AppContext!
     var statusItem: StatusItemController!
+    var popover: PopoverController?
 
     func applicationDidFinishLaunching(_ n: Notification) {
         do {
@@ -46,6 +47,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             timer.onTick = { [weak self] in Task { @MainActor in await self?.tick() } }
             timer.start()
             ctx.pollingTimer = timer
+            popover = PopoverController(ctx: ctx)
+            statusItem.onClick = { [weak self] in
+                guard let self, let button = self.statusItem.item.button else { return }
+                self.popover?.toggle(from: button)
+            }
             await tick()  // immediate first poll
         }
     }
