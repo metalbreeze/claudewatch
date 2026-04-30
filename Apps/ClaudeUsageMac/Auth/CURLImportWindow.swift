@@ -66,6 +66,42 @@ private struct CURLImportView: View {
     @State private var error: String?
     let onImport: (CURLImport) -> Void
 
+    /// Returns nil if the cURL looks like a real claude.ai usage request,
+    /// otherwise a human-readable diagnostic. Catches three classes of
+    /// wrong-cURL paste:
+    ///
+    ///   1. A request to a non-claude.ai host (e.g. Datadog telemetry)
+    ///   2. A claude.ai request that isn't the usage endpoint
+    ///      (e.g. /api/account)
+    ///   3. A claude.ai request without a session cookie
+    private func validate(_ imp: CURLImport) -> String? {
+        guard let host = imp.url.host?.lowercased() else {
+            return "URL has no host — paste looks malformed."
+        }
+        if !host.contains("claude.ai") {
+            return """
+            URL must point to claude.ai (yours points to \(host)).
+            Make sure you copied the cURL of the JSON usage request, \
+            not a telemetry / analytics request.
+            """
+        }
+        if !imp.url.path.lowercased().contains("usage") {
+            return """
+            URL path doesn't look like a usage endpoint: \(imp.url.path)
+            On the claude.ai/settings/usage page, the right request \
+            usually has 'usage' in its path (e.g. \
+            /api/organizations/{id}/usage).
+            """
+        }
+        if imp.cookies["sessionKey"] == nil {
+            return """
+            No 'sessionKey' cookie found. Make sure you copied the \
+            cURL while signed in to claude.ai (DevTools → Network).
+            """
+        }
+        return nil
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Import endpoint + cookies from a real browser")
@@ -115,8 +151,8 @@ private struct CURLImportView: View {
                 Button("Import") {
                     do {
                         let parsed = try CURLParser.parse(pasted)
-                        if parsed.cookies["sessionKey"] == nil {
-                            error = "No 'sessionKey' cookie found in the cURL — make sure the request was made while signed in to claude.ai."
+                        if let problem = validate(parsed) {
+                            error = problem
                             return
                         }
                         error = nil

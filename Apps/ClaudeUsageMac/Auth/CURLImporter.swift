@@ -32,6 +32,8 @@ public struct CURLImport {
 public enum CURLParseError: Error, CustomStringConvertible {
     case notCurl
     case noURL
+    case wrongHost(String)
+    case wrongPath(String)
     case missingSessionKey
 
     public var description: String {
@@ -40,6 +42,10 @@ public enum CURLParseError: Error, CustomStringConvertible {
             return "Doesn't look like a curl command — must start with 'curl '."
         case .noURL:
             return "No URL found in the command."
+        case .wrongHost(let host):
+            return "URL host '\(host)' is not claude.ai — wrong cURL pasted."
+        case .wrongPath(let path):
+            return "URL path '\(path)' doesn't look like a usage endpoint."
         case .missingSessionKey:
             return "No 'sessionKey' cookie found. Make sure you copied the cURL from a request to claude.ai while signed in."
         }
@@ -154,6 +160,16 @@ public enum CURLParser {
 /// package + endpoint URL, then nudges the AppDelegate to restart polling.
 enum CURLImportApplier {
     static func apply(_ imp: CURLImport, ctx: AppContext) throws {
+        // Defense-in-depth: re-validate even though the UI also checks.
+        // A future programmatic caller (CLI, scripted import, tests)
+        // shouldn't need to know to validate — `apply` enforces it.
+        guard let host = imp.url.host?.lowercased(),
+              host.contains("claude.ai") else {
+            throw CURLParseError.wrongHost(imp.url.host ?? "")
+        }
+        guard imp.url.path.lowercased().contains("usage") else {
+            throw CURLParseError.wrongPath(imp.url.path)
+        }
         let cookies = imp.cookies
         guard cookies["sessionKey"] != nil else {
             throw CURLParseError.missingSessionKey
