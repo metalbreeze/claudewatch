@@ -8,8 +8,13 @@ struct ChartView: View {
     let timeframe: Timeframe
 
     var body: some View {
-        let cutoff = Date().addingTimeInterval(-timeframe.seconds)
+        let now = Date()
+        let cutoff = now.addingTimeInterval(-timeframe.seconds)
+        // Extend x-axis right edge to include any forward forecast.
+        let forecastEnd = forecast?.line.last?.time ?? now
+        let xMax = max(now, forecastEnd)
         let visible = snapshots.filter { $0.timestamp >= cutoff }
+
         Chart {
             ForEach(visible, id: \.timestamp) { s in
                 LineMark(
@@ -28,6 +33,33 @@ struct ChartView: View {
             }
         }
         .chartYScale(domain: 0...100)
+        .chartXScale(domain: cutoff...xMax)
+        .chartXAxis {
+            AxisMarks(values: .automatic(desired: 4)) { value in
+                AxisGridLine()
+                AxisValueLabel(format: axisFormat, centered: false)
+                    .font(.system(size: 9))
+            }
+        }
+        .chartYAxis {
+            AxisMarks(values: [0, 50, 100]) { value in
+                AxisGridLine()
+                AxisValueLabel("\(value.as(Int.self) ?? 0)%")
+                    .font(.system(size: 9))
+            }
+        }
         .frame(height: 90)
+    }
+
+    /// Pick an x-axis label format that matches the timeframe granularity.
+    private var axisFormat: Date.FormatStyle {
+        switch timeframe {
+        case .oneHour, .eightHour:
+            return .dateTime.hour().minute()
+        case .dayHour:
+            return .dateTime.hour()
+        case .oneWeek:
+            return .dateTime.month(.abbreviated).day()
+        }
     }
 }
