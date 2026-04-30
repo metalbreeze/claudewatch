@@ -11,15 +11,13 @@ final class PopoverController {
         self.ctx = ctx
         popover.contentSize = NSSize(width: 340, height: 420)
         popover.behavior = .transient
-
-        // Placeholder content until PopoverRootView lands in Task 38.
-        // This will be replaced in Task 38 — leaving the placeholder
-        // path so each task's commit is self-contained.
-        let placeholder = VStack {
-            Text("Popover (Task 38 will fill this in)")
-                .padding()
+        guard let controller = ctx.controller else {
+            popover.contentViewController = NSHostingController(
+                rootView: Text("Controller not yet ready").padding())
+            return
         }
-        popover.contentViewController = NSHostingController(rootView: placeholder)
+        popover.contentViewController = NSHostingController(
+            rootView: PopoverRootView(controller: controller))
     }
 
     func toggle(from anchor: NSStatusBarButton) {
