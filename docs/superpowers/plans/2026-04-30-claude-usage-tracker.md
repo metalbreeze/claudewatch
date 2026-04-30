@@ -1537,12 +1537,15 @@ public struct LinearForecaster {
         let slope = num / den
         let intercept = my - slope * mx     // y at x=0 (now)
 
-        // R²
+        // R²  — explicit for-loop here (the equivalent triple-zip chain
+        // exceeds Swift's expression-type-check timeout in Swift 6).
         let ssTot = zip(ys, ws).map { (y, w) in w * (y - my) * (y - my) }.reduce(0,+)
-        let ssRes = zip(zip(xs, ys), ws).map { (xy, w) in
-            let pred = slope * xy.0 + intercept
-            return w * (xy.1 - pred) * (xy.1 - pred)
-        }.reduce(0,+)
+        var ssRes: Double = 0
+        for ((x, y), w) in zip(zip(xs, ys), ws) {
+            let pred = slope * x + intercept
+            let diff = y - pred
+            ssRes += w * diff * diff
+        }
         let r2 = ssTot > 0 ? max(0, 1 - ssRes / ssTot) : 0
 
         var hit: Date? = nil
