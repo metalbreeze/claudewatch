@@ -2,12 +2,12 @@ import Foundation
 import UsageCore
 
 /// File-backed `KeychainStoring` for macOS development. Stores secrets in
-/// `~/Library/Application Support/ClaudeUsage/secrets/{service}--{account}`
+/// `~/Library/Application Support/ClaudeWatch/secrets/{service}--{account}`
 /// with `0600` permissions.
 ///
 /// Why not the real Keychain on macOS? Ad-hoc-signed development builds
 /// produce a fresh binary signature on every rebuild, which makes macOS
-/// pop the "Claude Usage wants to use your confidential information"
+/// pop the "Claude Watch wants to use your confidential information"
 /// prompt every launch. Stable signing (a real Apple ID team) fixes that,
 /// but until the user wires up signing this file store removes the
 /// friction without weakening the threat model meaningfully — both
@@ -30,14 +30,14 @@ public struct FileSecretStore: KeychainStoring {
     }
 
     /// Convenience initializer that resolves
-    /// `~/Library/Application Support/ClaudeUsage/secrets/`.
+    /// `~/Library/Application Support/ClaudeWatch/secrets/`.
     public init() throws {
         let dir = try FileManager.default
             .url(for: .applicationSupportDirectory,
                  in: .userDomainMask,
                  appropriateFor: nil,
                  create: true)
-            .appendingPathComponent("ClaudeUsage", isDirectory: true)
+            .appendingPathComponent("ClaudeWatch", isDirectory: true)
             .appendingPathComponent("secrets", isDirectory: true)
         try FileManager.default.createDirectory(
             at: dir,

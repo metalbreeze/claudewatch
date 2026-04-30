@@ -1,7 +1,7 @@
 import Foundation
 
 public struct CookiePackageStore {
-    public static let service = "com.claudeusage.cookie"
+    public static let service = "com.claudewatch.cookie"
     let keychain: KeychainStoring
     let deviceID: String
     public init(keychain: KeychainStoring, deviceID: String) {

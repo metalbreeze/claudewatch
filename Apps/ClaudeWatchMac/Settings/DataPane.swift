@@ -29,12 +29,12 @@ struct DataPane: View {
         let dir = (try? FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: false))
             ?? FileManager.default.temporaryDirectory
-        return dir.appendingPathComponent("ClaudeUsage").appendingPathComponent("usage.db")
+        return dir.appendingPathComponent("ClaudeWatch").appendingPathComponent("usage.db")
     }
 
     private func exportCSV() {
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "claude-usage.csv"
+        panel.nameFieldStringValue = "claude-watch.csv"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         var csv = "timestamp,used_5h,ceiling_5h,used_week,ceiling_week,plan\n"
         if let arr = try? ctx.snapshots.fetchRecent(within: 30 * 86400) {

@@ -2,7 +2,7 @@ import SwiftUI
 import UsageCore
 
 @main
-struct ClaudeUsageMacApp: App {
+struct ClaudeWatchMacApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
     var body: some Scene {
         // LSUIElement = YES means we don't want a real WindowGroup.

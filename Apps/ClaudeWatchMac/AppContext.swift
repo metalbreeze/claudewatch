@@ -24,11 +24,11 @@ final class AppContext {
                  in: .userDomainMask,
                  appropriateFor: nil,
                  create: true)
-            .appendingPathComponent("ClaudeUsage", isDirectory: true)
+            .appendingPathComponent("ClaudeWatch", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         self.dbq = try Database.openOnDisk(at: dir.appendingPathComponent("usage.db"))
         // FileSecretStore (instead of the system Keychain) avoids the
-        // "Claude Usage wants to use your confidential information"
+        // "Claude Watch wants to use your confidential information"
         // prompt that ad-hoc signed dev builds trigger on every rebuild.
         // See FileSecretStore.swift for the threat-model note.
         self.secrets = try FileSecretStore()

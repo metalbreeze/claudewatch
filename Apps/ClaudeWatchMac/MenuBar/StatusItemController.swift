@@ -18,7 +18,7 @@ final class StatusItemController {
     init() {
         if let button = item.button {
             button.title = "⌬ ⏳"
-            button.toolTip = "Claude Usage — initializing"
+            button.toolTip = "Claude Watch — initializing"
             button.target = self
             button.action = #selector(buttonClicked)
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
@@ -51,7 +51,7 @@ final class StatusItemController {
         settings.target = self
         menu.addItem(settings)
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Quit Claude Usage", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit Claude Watch", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         // Show, then immediately remove so it doesn't stay attached.
         item.menu = menu
         item.button?.performClick(nil)

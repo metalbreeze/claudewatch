@@ -23,7 +23,7 @@ enum SettingsWindowController {
         .padding(12)
         let host = NSHostingController(rootView: view)
         let w = NSWindow(contentViewController: host)
-        w.title = "Claude Usage Settings"
+        w.title = "Claude Watch Settings"
         w.styleMask = [.titled, .closable]
         w.makeKeyAndOrderFront(nil)
         window = w

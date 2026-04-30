@@ -1,6 +1,6 @@
-name: ClaudeUsage
+name: ClaudeWatch
 options:
-  bundleIdPrefix: com.claudeusage
+  bundleIdPrefix: com.claudewatch
   deploymentTarget:
     macOS: "13.0"
     iOS: "16.0"
@@ -13,7 +13,9 @@ configs:
 
 # Local Swift Package Manager package dependency.
 # Tests live inside the package — xcodebuild against UsageCore-Package
-# scheme runs them.
+# scheme runs them. (UsageCore is the internal library name; the
+# user-facing app is Claude Watch, but the library still describes
+# "usage data" conceptually.)
 packages:
   UsageCore:
     path: Packages/UsageCore
@@ -33,18 +35,18 @@ settings:
 targets:
 
   # ===== macOS menu bar app =================================================
-  ClaudeUsageMac:
+  ClaudeWatchMac:
     type: application
     platform: macOS
     sources:
-      - path: Apps/ClaudeUsageMac
+      - path: Apps/ClaudeWatchMac
         excludes:
           - "Info.plist"
-          - "ClaudeUsageMac.entitlements"
+          - "ClaudeWatchMac.entitlements"
     info:
-      path: Apps/ClaudeUsageMac/Info.plist
+      path: Apps/ClaudeWatchMac/Info.plist
       properties:
-        CFBundleDisplayName: Claude Usage
+        CFBundleDisplayName: Claude Watch
         CFBundleShortVersionString: "0.1.0"
         CFBundleVersion: "1"
         # The whole point of this app — runs in menu bar, no Dock icon.
@@ -53,7 +55,7 @@ targets:
         NSSupportsAutomaticTermination: YES
         NSSupportsSuddenTermination: YES
     entitlements:
-      path: Apps/ClaudeUsageMac/ClaudeUsageMac.entitlements
+      path: Apps/ClaudeWatchMac/ClaudeWatchMac.entitlements
       properties:
         com.apple.security.app-sandbox: false
         # Network for scraping claude.ai
@@ -62,10 +64,10 @@ targets:
         # com.apple.developer.icloud-services:
         #   - CloudKit
         # com.apple.developer.icloud-container-identifiers:
-        #   - iCloud.com.claudeusage.shared
+        #   - iCloud.com.claudewatch.shared
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.claudeusage.mac
+        PRODUCT_BUNDLE_IDENTIFIER: com.claudewatch.mac
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: NO
@@ -77,18 +79,18 @@ targets:
         product: UsageCore
 
   # ===== iOS app ============================================================
-  ClaudeUsageiOS:
+  ClaudeWatchiOS:
     type: application
     platform: iOS
     sources:
-      - path: Apps/ClaudeUsageiOS
+      - path: Apps/ClaudeWatchiOS
         excludes:
           - "Info.plist"
-          - "ClaudeUsageiOS.entitlements"
+          - "ClaudeWatchiOS.entitlements"
     info:
-      path: Apps/ClaudeUsageiOS/Info.plist
+      path: Apps/ClaudeWatchiOS/Info.plist
       properties:
-        CFBundleDisplayName: Claude Usage
+        CFBundleDisplayName: Claude Watch
         CFBundleShortVersionString: "0.1.0"
         CFBundleVersion: "1"
         UILaunchStoryboardName: ""
@@ -99,19 +101,19 @@ targets:
         # WKWebView communicates with claude.ai over HTTPS — no ATS exception
         # needed.
     entitlements:
-      path: Apps/ClaudeUsageiOS/ClaudeUsageiOS.entitlements
+      path: Apps/ClaudeWatchiOS/ClaudeWatchiOS.entitlements
       properties:
         # App Group shared with the Widget extension (Task 42).
         com.apple.security.application-groups:
-          - group.com.claudeusage.shared
+          - group.com.claudewatch.shared
         # Future: enable when iCloud is wired (Task 52)
         # com.apple.developer.icloud-services:
         #   - CloudKit
         # com.apple.developer.icloud-container-identifiers:
-        #   - iCloud.com.claudeusage.shared
+        #   - iCloud.com.claudewatch.shared
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.claudeusage.ios
+        PRODUCT_BUNDLE_IDENTIFIER: com.claudewatch.ios
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: NO
@@ -130,7 +132,7 @@ targets:
   # target if the sources directory has at least one file, so we
   # comment it out for now and add it back at Task 47.
   #
-  # ClaudeUsageWidgets:
+  # ClaudeWatchWidgets:
   #   type: app-extension
   #   platform: iOS
   #   ...
