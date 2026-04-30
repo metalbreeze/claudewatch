@@ -750,7 +750,7 @@ final class AlertStateRepositoryTests: XCTestCase {
         let repo = AlertStateRepository(dbq: dbq)
         let t = Date()
         try repo.recordFire(.fiveHourForecast, at: t)
-        XCTAssertEqual(try repo.lastFired(.fiveHourForecast)?.timeIntervalSince1970,
+        XCTAssertEqual(try repo.lastFired(.fiveHourForecast)!.timeIntervalSince1970,
                        t.timeIntervalSince1970, accuracy: 1)
     }
     func test_snooze_persists() throws {
@@ -758,7 +758,7 @@ final class AlertStateRepositoryTests: XCTestCase {
         let repo = AlertStateRepository(dbq: dbq)
         let until = Date().addingTimeInterval(3600)
         try repo.snooze(.fiveHourForecast, until: until)
-        XCTAssertEqual(try repo.snoozedUntil(.fiveHourForecast)?.timeIntervalSince1970,
+        XCTAssertEqual(try repo.snoozedUntil(.fiveHourForecast)!.timeIntervalSince1970,
                        until.timeIntervalSince1970, accuracy: 1)
     }
 }
