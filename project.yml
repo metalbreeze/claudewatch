@@ -1,0 +1,136 @@
+name: ClaudeUsage
+options:
+  bundleIdPrefix: com.claudeusage
+  deploymentTarget:
+    macOS: "13.0"
+    iOS: "16.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+  defaultConfig: Debug
+configs:
+  Debug: debug
+  Release: release
+
+# Local Swift Package Manager package dependency.
+# Tests live inside the package — xcodebuild against UsageCore-Package
+# scheme runs them.
+packages:
+  UsageCore:
+    path: Packages/UsageCore
+
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    SWIFT_STRICT_CONCURRENCY: minimal
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    # Signing left to the developer's Xcode setup. Personal team works
+    # for local builds.
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+
+# ─── Targets ────────────────────────────────────────────────────────────────
+
+targets:
+
+  # ===== macOS menu bar app =================================================
+  ClaudeUsageMac:
+    type: application
+    platform: macOS
+    sources:
+      - path: Apps/ClaudeUsageMac
+        excludes:
+          - "Info.plist"
+          - "ClaudeUsageMac.entitlements"
+    info:
+      path: Apps/ClaudeUsageMac/Info.plist
+      properties:
+        CFBundleDisplayName: Claude Usage
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        # The whole point of this app — runs in menu bar, no Dock icon.
+        LSUIElement: YES
+        NSHumanReadableCopyright: ""
+        NSSupportsAutomaticTermination: YES
+        NSSupportsSuddenTermination: YES
+    entitlements:
+      path: Apps/ClaudeUsageMac/ClaudeUsageMac.entitlements
+      properties:
+        com.apple.security.app-sandbox: false
+        # Network for scraping claude.ai
+        com.apple.security.network.client: true
+        # Future: enable when iCloud is wired (Task 52)
+        # com.apple.developer.icloud-services:
+        #   - CloudKit
+        # com.apple.developer.icloud-container-identifiers:
+        #   - iCloud.com.claudeusage.shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.claudeusage.mac
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        SDKROOT: macosx
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+    dependencies:
+      - package: UsageCore
+        product: UsageCore
+
+  # ===== iOS app ============================================================
+  ClaudeUsageiOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Apps/ClaudeUsageiOS
+        excludes:
+          - "Info.plist"
+          - "ClaudeUsageiOS.entitlements"
+    info:
+      path: Apps/ClaudeUsageiOS/Info.plist
+      properties:
+        CFBundleDisplayName: Claude Usage
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        UILaunchStoryboardName: ""
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIRequiredDeviceCapabilities:
+          - arm64
+        # WKWebView communicates with claude.ai over HTTPS — no ATS exception
+        # needed.
+    entitlements:
+      path: Apps/ClaudeUsageiOS/ClaudeUsageiOS.entitlements
+      properties:
+        # App Group shared with the Widget extension (Task 42).
+        com.apple.security.application-groups:
+          - group.com.claudeusage.shared
+        # Future: enable when iCloud is wired (Task 52)
+        # com.apple.developer.icloud-services:
+        #   - CloudKit
+        # com.apple.developer.icloud-container-identifiers:
+        #   - iCloud.com.claudeusage.shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.claudeusage.ios
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "1,2"
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+        SDKROOT: iphoneos
+    dependencies:
+      - package: UsageCore
+        product: UsageCore
+      # Embedded widget extension is added later (Task 47)
+
+  # ===== iOS Widget extension ===============================================
+  # Stub target — populated in Phase 16 (Tasks 47–51).
+  # We declare it now so the project structure is in place, but the
+  # sources directory is empty until then. XcodeGen only generates a
+  # target if the sources directory has at least one file, so we
+  # comment it out for now and add it back at Task 47.
+  #
+  # ClaudeUsageWidgets:
+  #   type: app-extension
+  #   platform: iOS
+  #   ...
