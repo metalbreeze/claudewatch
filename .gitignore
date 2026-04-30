@@ -1,3 +1,13 @@
 .superpowers/
 .DS_Store
 *.swp
+
+# Xcode
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.xccheckout
+
+# Swift PM
+.build/
+.swiftpm/xcode/
