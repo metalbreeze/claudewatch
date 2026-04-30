@@ -45,8 +45,7 @@ struct PopoverRootView: View {
     }
 
     private func refreshSnapshots() {
-        // Task 39 wires this to a real history query.
-        snapshots = controller.state.latest.map { [$0] } ?? []
+        snapshots = (try? controller.snapshots(within: timeframe.seconds)) ?? []
     }
 
     private func resetCaption(_ d: Date?) -> String {

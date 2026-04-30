@@ -40,6 +40,20 @@ final class UsageControllerTests: XCTestCase {
         try await controller.pollOnce()
         XCTAssertEqual(sync.calls, 2, "first poll + post-1s")
     }
+
+    func test_snapshots_within_timeframe() async throws {
+        let dbq = try DatabaseQueue(); try Database.migrator.migrate(dbq)
+        let snap = UsageSnapshot(timestamp: Date(), plan: .pro,
+            used5h: 1, ceiling5h: 100, resetTime5h: Date(),
+            usedWeek: 1, ceilingWeek: 1000, resetTimeWeek: Date(),
+            sourceVersion: "fake", raw: Data())
+        let c = await UsageController(scraper: FakeScraper(snap: snap),
+                                snapshots: SnapshotRepository(dbq: dbq, deviceID: "d1"),
+                                forecaster: LinearForecaster())
+        try await c.pollOnce()
+        let arr = try await c.snapshots(within: 60 * 60)
+        XCTAssertEqual(arr.count, 1)
+    }
 }
 struct FakeScraper: UsageScraper {
     let sourceVersion = "fake"

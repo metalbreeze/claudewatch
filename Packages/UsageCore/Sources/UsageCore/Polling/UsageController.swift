@@ -13,7 +13,7 @@ public final class UsageController: ObservableObject {
     @Published public private(set) var state = State()
 
     private let scraper: UsageScraper
-    private let snapshots: SnapshotRepository
+    private let snapshotRepo: SnapshotRepository
     private let forecaster: LinearForecaster
     private let sync: CloudKitSyncing?
     private let syncIntervalSeconds: TimeInterval
@@ -24,7 +24,8 @@ public final class UsageController: ObservableObject {
                 forecaster: LinearForecaster,
                 sync: CloudKitSyncing? = nil,
                 syncIntervalSeconds: TimeInterval = 300) {
-        self.scraper = scraper; self.snapshots = snapshots
+        self.scraper = scraper
+        self.snapshotRepo = snapshots          // renamed property
         self.forecaster = forecaster
         self.sync = sync
         self.syncIntervalSeconds = syncIntervalSeconds
@@ -33,12 +34,12 @@ public final class UsageController: ObservableObject {
     public func pollOnce() async throws {
         do {
             let snap = try await scraper.fetchSnapshot()
-            try snapshots.insert(snap)
+            try snapshotRepo.insert(snap)
             state.latest = snap
             state.lastPollAt = Date()
             state.lastError = nil
             state.consecutiveAuthFailures = 0
-            let recent = try snapshots.fetchRecent(within: 3600)
+            let recent = try snapshotRepo.fetchRecent(within: 3600)
             state.forecast = forecaster.forecast(snapshots: recent)
             pendingForSync.append(snap)
             await maybeSync()
@@ -47,6 +48,10 @@ public final class UsageController: ObservableObject {
             if e.isAuthRelated { state.consecutiveAuthFailures += 1 }
             throw e
         }
+    }
+
+    public func snapshots(within seconds: TimeInterval) throws -> [UsageSnapshot] {
+        try snapshotRepo.fetchRecent(within: seconds)
     }
 
     private func maybeSync() async {
