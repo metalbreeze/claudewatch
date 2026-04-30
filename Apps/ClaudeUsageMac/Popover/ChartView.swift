@@ -35,7 +35,7 @@ struct ChartView: View {
         .chartYScale(domain: 0...100)
         .chartXScale(domain: cutoff...xMax)
         .chartXAxis {
-            AxisMarks(values: .automatic(desired: 4)) { value in
+            AxisMarks(values: .automatic) { _ in
                 AxisGridLine()
                 AxisValueLabel(format: axisFormat, centered: false)
                     .font(.system(size: 9))
@@ -44,8 +44,11 @@ struct ChartView: View {
         .chartYAxis {
             AxisMarks(values: [0, 50, 100]) { value in
                 AxisGridLine()
-                AxisValueLabel("\(value.as(Int.self) ?? 0)%")
-                    .font(.system(size: 9))
+                AxisValueLabel {
+                    if let v = value.as(Int.self) {
+                        Text("\(v)%").font(.system(size: 9))
+                    }
+                }
             }
         }
         .frame(height: 90)
