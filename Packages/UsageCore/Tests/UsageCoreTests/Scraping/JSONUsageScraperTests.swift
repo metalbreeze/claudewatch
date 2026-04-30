@@ -3,10 +3,41 @@ import XCTest
 
 final class JSONUsageScraperTests: XCTestCase {
     func test_fetchSnapshot_parses_known_shape() async throws {
+        // Real shape observed from claude.ai/api/organizations/{id}/usage
+        // on 2026-04-30. utilization is a percentage (0-100), reset times
+        // are ISO 8601 with microsecond precision.
         let body = """
-        {"plan":"Pro",
-         "fiveHourWindow":{"used":12345,"limit":100000,"resetAt":"2026-04-30T15:00:00Z"},
-         "weeklyWindow":{"used":50000,"limit":1000000,"resetAt":"2026-05-04T00:00:00Z"}}
+        {
+            "five_hour": {
+                "utilization": 3.0,
+                "resets_at": "2026-04-30T19:09:59.955046+00:00"
+            },
+            "seven_day": {
+                "utilization": 59.0,
+                "resets_at": "2026-04-30T20:59:59.955071+00:00"
+            },
+            "seven_day_oauth_apps": null,
+            "seven_day_opus": null,
+            "seven_day_sonnet": {
+                "utilization": 6.0,
+                "resets_at": "2026-04-30T20:59:59.955082+00:00"
+            },
+            "seven_day_cowork": null,
+            "seven_day_omelette": {
+                "utilization": 0.0,
+                "resets_at": null
+            },
+            "tangelo": null,
+            "iguana_necktie": null,
+            "omelette_promotional": null,
+            "extra_usage": {
+                "is_enabled": false,
+                "monthly_limit": null,
+                "used_credits": null,
+                "utilization": null,
+                "currency": null
+            }
+        }
         """.data(using: .utf8)!
         URLProtocolMock.responses[URL(string: "https://claude.ai/api/usage")!] = (200, body)
         let cfg = URLSessionConfiguration.ephemeral
@@ -19,9 +50,31 @@ final class JSONUsageScraperTests: XCTestCase {
             session: session
         )
         let snap = try await scraper.fetchSnapshot()
-        XCTAssertEqual(snap.plan, .pro)
-        XCTAssertEqual(snap.used5h, 12345)
-        XCTAssertEqual(snap.ceilingWeek, 1_000_000)
+        // 3.0% × 100 = 300 ; ceiling = 10000
+        XCTAssertEqual(snap.used5h, 300)
+        XCTAssertEqual(snap.ceiling5h, 10_000)
+        XCTAssertEqual(snap.fraction5h, 0.03, accuracy: 0.0001)
+        XCTAssertEqual(snap.usedWeek, 5900)
+        XCTAssertEqual(snap.ceilingWeek, 10_000)
+        XCTAssertEqual(snap.fractionWeek, 0.59, accuracy: 0.0001)
+    }
+
+    func test_fetchSnapshot_handles_missing_windows() async throws {
+        // If the user has zero usage, Anthropic might return null.
+        let body = """
+        {"five_hour": null, "seven_day": null}
+        """.data(using: .utf8)!
+        URLProtocolMock.responses[URL(string: "https://claude.ai/api/usage")!] = (200, body)
+        let cfg = URLSessionConfiguration.ephemeral
+        cfg.protocolClasses = [URLProtocolMock.self]
+        let session = URLSession(configuration: cfg)
+        let scraper = JSONUsageScraper(
+            endpoint: URL(string: "https://claude.ai/api/usage")!,
+            cookies: CookiePackage(sessionKey: "s", cfClearance: nil, cfBm: nil, userAgent: "UA", all: []),
+            session: session)
+        let snap = try await scraper.fetchSnapshot()
+        XCTAssertEqual(snap.used5h, 0)
+        XCTAssertEqual(snap.usedWeek, 0)
     }
 
     func test_401_throws_authExpired() async throws {
