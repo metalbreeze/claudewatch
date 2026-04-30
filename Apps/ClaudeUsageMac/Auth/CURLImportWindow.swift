@@ -14,6 +14,23 @@ enum CURLImportWindowController {
         let view = CURLImportView { imp in
             do {
                 try CURLImportApplier.apply(imp, ctx: ctx)
+                // Show a success confirmation BEFORE closing the import
+                // window. Without this, the window vanishes silently and
+                // the app looks like it exited (LSUIElement = no Dock icon).
+                let alert = NSAlert()
+                alert.messageText = "Imported"
+                alert.informativeText = """
+                Endpoint and cookies saved. Polling has started.
+
+                Check the menu bar (top-right of your screen) for the ⌬ icon. Hover it for status:
+                • ⌬ N%   — polling succeeded
+                • ⌬ ⚠    — polling failed; tooltip shows why
+                • ⌬ —    — no data yet (first poll still running)
+
+                Right-click the icon for Settings or to re-import.
+                """
+                alert.alertStyle = .informational
+                alert.runModal()
                 window?.close()
                 window = nil
                 onSuccess()
