@@ -31,6 +31,13 @@ enum CURLImportWindowController {
         w.styleMask = [.titled, .closable, .resizable]
         w.setContentSize(NSSize(width: 640, height: 540))
         w.center()
+        // Float above other apps. Without this, switching to Safari/Chrome
+        // hides this window behind the browser, and our LSUIElement app
+        // has no Dock icon for the user to click back to. Floating means
+        // the user can do DevTools work in Chrome with this window
+        // visible right next to it, ready for the paste.
+        w.level = .floating
+        w.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         w.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         window = w
@@ -51,14 +58,21 @@ private struct CURLImportView: View {
                 Text("How to grab the cURL:")
                     .font(.subheadline.weight(.semibold))
                 Text("1. In Safari or Chrome, sign in to claude.ai.")
-                Text("2. Open https://claude.ai/settings/usage with DevTools open (Cmd-Option-I).")
+                // Use verbatim() so SwiftUI doesn't auto-link the URL —
+                // clicking it would open Chrome and hide this window.
+                Text(verbatim: "2. Open the URL  claude.ai/settings/usage  with DevTools open (Cmd-Option-I).")
                 Text("3. Click the Network tab, then reload the page.")
-                Text("4. Look for the JSON request that returns usage data (probably under /api/...).")
+                Text(verbatim: "4. Look for the JSON request that returns usage data (probably under /api/…).")
                 Text("5. Right-click that request → Copy → Copy as cURL.")
                 Text("6. Paste below and click Import.")
+                Text("(This window stays on top while you switch to the browser.)")
+                    .font(.caption.italic())
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 2)
             }
             .font(.system(size: 11))
             .foregroundStyle(.secondary)
+            .textSelection(.disabled)
 
             TextEditor(text: $pasted)
                 .font(.system(size: 11, design: .monospaced))
