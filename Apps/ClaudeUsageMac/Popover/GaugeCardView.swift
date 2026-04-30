@@ -12,9 +12,10 @@ struct GaugeCardView: View {
                 .foregroundStyle(.secondary)
             Text("\(Int(percent * 100))%")
                 .font(.system(size: 28, weight: .semibold, design: .rounded))
-            ProgressView(value: percent)
-                .progressViewStyle(.linear)
-                .tint(color(for: percent))
+            // Pure-SwiftUI fill bar. ProgressView on macOS uses
+            // NSProgressIndicator under the hood, which doesn't render its
+            // tint inside an NSPopover until first interaction.
+            FillBar(percent: percent, color: color(for: percent))
             Text(resetCaption)
                 .font(.system(size: 9))
                 .foregroundStyle(.tertiary)
@@ -31,5 +32,23 @@ struct GaugeCardView: View {
         if p >= 0.9 { return .red }
         if p >= 0.75 { return .orange }
         return .green
+    }
+}
+
+private struct FillBar: View {
+    let percent: Double          // 0..1
+    let color: Color
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.secondary.opacity(0.25))
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(color)
+                    .frame(width: max(0, min(1, percent)) * geo.size.width)
+            }
+        }
+        .frame(height: 4)
     }
 }

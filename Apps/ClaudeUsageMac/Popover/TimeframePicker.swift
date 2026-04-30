@@ -16,12 +16,33 @@ enum Timeframe: String, CaseIterable, Identifiable {
     }
 }
 
+/// Pure-SwiftUI segmented picker. macOS's `Picker(.segmented)` is backed
+/// by NSSegmentedControl which doesn't paint its selected segment inside
+/// an NSPopover until first interaction (a SwiftUI/AppKit bridge quirk).
+/// Drawing it ourselves gives us a correct first render.
 struct TimeframePicker: View {
     @Binding var selection: Timeframe
+
     var body: some View {
-        Picker("", selection: $selection) {
-            ForEach(Timeframe.allCases) { t in Text(t.rawValue).tag(t) }
+        HStack(spacing: 4) {
+            ForEach(Timeframe.allCases) { t in
+                Button {
+                    selection = t
+                } label: {
+                    Text(t.rawValue)
+                        .font(.system(size: 11, weight: .medium))
+                        .padding(.vertical, 4)
+                        .frame(maxWidth: .infinity)
+                        .foregroundStyle(t == selection ? Color.white : Color.primary)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(t == selection
+                                      ? Color.accentColor
+                                      : Color.secondary.opacity(0.15))
+                        )
+                }
+                .buttonStyle(.plain)
+            }
         }
-        .pickerStyle(.segmented)
     }
 }
