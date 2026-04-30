@@ -38,11 +38,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             let endpoint = EndpointConfig(jsonEndpoint: nil)
             let factory = ScraperFactory(config: endpoint, cookies: pkg)
+            let dispatcher = NotificationDispatcher()
+            Task { _ = await dispatcher.requestAuthorization() }
             ctx.controller = UsageController(
                 scraper: factory.current(),
                 snapshots: ctx.snapshots,
                 forecaster: LinearForecaster(),
-                sync: nil)
+                sync: nil,
+                alertEngine: AlertEngine(),
+                alertState: ctx.alertState,
+                alertSink: NotificationSinkAdapter(dispatcher: dispatcher))
             let timer = PollingTimer(interval: 90, jitter: 10)
             timer.onTick = { [weak self] in Task { @MainActor in await self?.tick() } }
             timer.start()
@@ -95,5 +100,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.setText(
             "⌬ \(pct)%",
             tooltip: "5h: \(pct)% • Week: \(Int(snap.fractionWeek * 100))%")
+    }
+}
+
+struct NotificationSinkAdapter: AlertSink {
+    let dispatcher: NotificationDispatcher
+    func deliver(_ k: AlertKind, snapshot s: UsageSnapshot, forecast f: ForecastResult?) async {
+        await dispatcher.deliver(k, snapshot: s, forecast: f)
     }
 }

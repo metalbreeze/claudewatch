@@ -41,6 +41,25 @@ final class UsageControllerTests: XCTestCase {
         XCTAssertEqual(sync.calls, 2, "first poll + post-1s")
     }
 
+    func test_alerts_fire_through_sink() async throws {
+        let dbq = try DatabaseQueue(); try Database.migrator.migrate(dbq)
+        let now = Date()
+        // Snapshot at 100% of 5h cap → 5h-hit should fire
+        let snap = UsageSnapshot(timestamp: now, plan: .pro,
+            used5h: 100, ceiling5h: 100, resetTime5h: now.addingTimeInterval(60),
+            usedWeek: 0, ceilingWeek: 1000, resetTimeWeek: now,
+            sourceVersion: "fake", raw: Data())
+        let sink = SpyAlertSink()
+        let c = await UsageController(scraper: FakeScraper(snap: snap),
+                                snapshots: SnapshotRepository(dbq: dbq, deviceID: "d1"),
+                                forecaster: LinearForecaster(),
+                                alertEngine: AlertEngine(),
+                                alertState: AlertStateRepository(dbq: dbq),
+                                alertSink: sink)
+        try await c.pollOnce()
+        XCTAssertTrue(sink.fired.contains(.fiveHourHit))
+    }
+
     func test_snapshots_within_timeframe() async throws {
         let dbq = try DatabaseQueue(); try Database.migrator.migrate(dbq)
         let snap = UsageSnapshot(timestamp: Date(), plan: .pro,
@@ -59,6 +78,13 @@ struct FakeScraper: UsageScraper {
     let sourceVersion = "fake"
     let snap: UsageSnapshot
     func fetchSnapshot() async throws -> UsageSnapshot { snap }
+}
+
+final class SpyAlertSink: AlertSink {
+    var fired: Set<AlertKind> = []
+    func deliver(_ kind: AlertKind, snapshot: UsageSnapshot, forecast: ForecastResult?) async {
+        fired.insert(kind)
+    }
 }
 
 final class SpySync: CloudKitSyncing {

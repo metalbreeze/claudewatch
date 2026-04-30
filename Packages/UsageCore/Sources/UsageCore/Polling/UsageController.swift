@@ -19,16 +19,26 @@ public final class UsageController: ObservableObject {
     private let syncIntervalSeconds: TimeInterval
     private var lastSyncedAt: Date?
     private var pendingForSync: [UsageSnapshot] = []
+    private let alertEngine: AlertEngine?
+    private let alertState: AlertStateRepository?
+    private let alertSink: AlertSink?
 
-    public init(scraper: UsageScraper, snapshots: SnapshotRepository,
+    public init(scraper: UsageScraper,
+                snapshots: SnapshotRepository,
                 forecaster: LinearForecaster,
                 sync: CloudKitSyncing? = nil,
-                syncIntervalSeconds: TimeInterval = 300) {
+                syncIntervalSeconds: TimeInterval = 300,
+                alertEngine: AlertEngine? = nil,
+                alertState: AlertStateRepository? = nil,
+                alertSink: AlertSink? = nil) {
         self.scraper = scraper
         self.snapshotRepo = snapshots          // renamed property
         self.forecaster = forecaster
         self.sync = sync
         self.syncIntervalSeconds = syncIntervalSeconds
+        self.alertEngine = alertEngine
+        self.alertState = alertState
+        self.alertSink = alertSink
     }
 
     public func pollOnce() async throws {
@@ -43,6 +53,18 @@ public final class UsageController: ObservableObject {
             state.forecast = forecaster.forecast(snapshots: recent)
             pendingForSync.append(snap)
             await maybeSync()
+            if let engine = alertEngine, let stateRepo = alertState, let sink = alertSink {
+                let kinds = engine.decide(
+                    snapshot: snap,
+                    forecast: state.forecast,
+                    alertState: AlertStateAdapter(repo: stateRepo),
+                    settings: .default,
+                    now: Date())
+                for k in kinds {
+                    try? stateRepo.recordFire(k, at: Date())
+                    await sink.deliver(k, snapshot: snap, forecast: state.forecast)
+                }
+            }
         } catch let e as ScrapeError {
             state.lastError = e
             if e.isAuthRelated { state.consecutiveAuthFailures += 1 }
