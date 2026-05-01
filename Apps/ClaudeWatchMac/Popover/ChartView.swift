@@ -22,14 +22,15 @@ struct ChartView: View {
         let resets = resetTimes(in: cutoff...xMax)
 
         Chart {
-            // 5h reset boundaries — gray dashed verticals.
-            // Approximation: assume regular 5h spacing back from the
-            // current window's resetAt. Real rolling windows can shift,
-            // but without server-side history this is the best we have.
+            // 5h reset boundaries — indigo dashed verticals so they're
+            // visually distinct from the gray axis gridlines. Approximation:
+            // assume regular 5h spacing back from the current window's
+            // resetAt. Real rolling windows can shift, but without
+            // server-side history this is the best we have.
             ForEach(Array(resets.enumerated()), id: \.offset) { _, t in
                 RuleMark(x: .value("reset", t))
-                    .foregroundStyle(Color.secondary.opacity(0.35))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                    .foregroundStyle(Color.indigo.opacity(0.6))
+                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [3, 3]))
             }
 
             ForEach(visible, id: \.timestamp) { s in
