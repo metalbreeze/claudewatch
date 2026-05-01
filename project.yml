@@ -25,10 +25,11 @@ settings:
     SWIFT_VERSION: "5.10"
     SWIFT_STRICT_CONCURRENCY: minimal
     ENABLE_USER_SCRIPT_SANDBOXING: NO
-    # Signing left to the developer's Xcode setup. Personal team works
-    # for local builds.
+    # Signing config. Debug uses automatic + your dev team for local
+    # runs; Release overrides per-target to use the Developer ID
+    # Application certificate so notarized DMGs work.
     CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: MKSL2N4Y23
 
 # ─── Targets ────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,22 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
         SDKROOT: macosx
         MACOSX_DEPLOYMENT_TARGET: "13.0"
+      configs:
+        # Debug builds: ad-hoc sign for local dev runs (no cert needed).
+        Debug:
+          CODE_SIGN_STYLE: Automatic
+          CODE_SIGN_IDENTITY: "-"
+        # Release builds: sign with Developer ID Application so the .app
+        # passes Gatekeeper after notarization. Hardened runtime is
+        # already enabled above; that's a notarization prerequisite.
+        # CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO is critical: it stops
+        # Xcode from sneaking `com.apple.security.get-task-allow=true`
+        # into the binary at sign time, which Apple's notary rejects.
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: "Developer ID Application"
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
+          OTHER_CODE_SIGN_FLAGS: "--timestamp --options=runtime"
     dependencies:
       - package: UsageCore
         product: UsageCore
