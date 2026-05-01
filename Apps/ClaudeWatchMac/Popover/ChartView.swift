@@ -15,11 +15,20 @@ struct ChartView: View {
     var body: some View {
         let now = Date()
         let cutoff = now.addingTimeInterval(-timeframe.seconds)
-        // Extend x-axis right edge to include any forward forecast.
+        // Cap how far the chart extends past now. Without this, an active
+        // forecast that runs all the way to resetTime5h (potentially ~5h
+        // away) would balloon the chart well past its labeled timeframe —
+        // a 1h view would actually span 6h. Limiting future to 1/4 of the
+        // timeframe keeps the x-axis label honest.
+        let showsForecast = (timeframe == .oneHour || timeframe == .eightHour)
+        let maxFuture = timeframe.seconds * 0.25
         let forecastEnd = forecast?.line.last?.time ?? now
-        let xMax = max(now, forecastEnd)
+        let cappedEnd = min(forecastEnd, now.addingTimeInterval(maxFuture))
+        let xMax = showsForecast ? max(now, cappedEnd) : now
         let visible = snapshots.filter { $0.timestamp >= cutoff }
         let resets = resetTimes(in: cutoff...xMax)
+        // Forecast points clipped to the visible future window only.
+        let visibleForecast = forecast?.line.filter { $0.time <= xMax } ?? []
 
         Chart {
             // 5h reset boundaries — indigo dashed verticals so they're
@@ -39,8 +48,13 @@ struct ChartView: View {
                     y: .value("pct", s.fraction5h * 100))
                 .foregroundStyle(.green)
             }
-            if let f = forecast {
-                ForEach(Array(f.line.enumerated()), id: \.offset) { _, p in
+
+            // Only draw forecast on 1h / 8h views to match
+            // ForecastCaptionView. 24h / 1w views are about historical
+            // pattern, not short-term projection — adding a forecast
+            // line there clutters more than it informs.
+            if showsForecast {
+                ForEach(Array(visibleForecast.enumerated()), id: \.offset) { _, p in
                     LineMark(
                         x: .value("t", p.time),
                         y: .value("pct", p.projectedFraction * 100))
