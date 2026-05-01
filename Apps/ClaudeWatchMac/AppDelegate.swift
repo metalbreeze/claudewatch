@@ -27,7 +27,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if (try? ctx.cookieStore.load()) == nil {
                 // Default to the cURL-paste flow rather than the
                 // (mostly broken) embedded WKWebView login.
-                statusItem.setText("⌬ ⏳", tooltip: "Right-click → Import from cURL…")
+                statusItem.setText("⌬ ⏳", tooltip: String(localized: "status.tooltip.initializing",
+                    defaultValue: "Right-click → Import from cURL…"))
                 CURLImportWindowController.show(ctx: ctx) { [weak self] in
                     self?.startPolling()
                 }
@@ -36,7 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         } catch {
             statusItem = StatusItemController()
-            statusItem.setText("⌬ ⚠", tooltip: "Init failed: \(error)")
+            statusItem.setText("⌬ ⚠", tooltip: String(localized: "status.tooltip.initFailed \(error)" as String.LocalizationValue))
         }
     }
 
@@ -47,7 +48,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         Task { @MainActor in
             guard let pkg = try? ctx.cookieStore.load() else {
-                statusItem.setText("⌬ ⚠", tooltip: "Not signed in — right-click → Import from cURL…")
+                statusItem.setText("⌬ ⚠", tooltip: String(localized: "status.tooltip.notSignedIn",
+                    defaultValue: "Not signed in — right-click → Import from cURL…"))
                 return
             }
             // Load persisted endpoint URL from settings (set by cURL import).
@@ -93,10 +95,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     try? await c.pollOnce()
                     render()
                 } else {
-                    statusItem.setText("⌬ ⚠", tooltip: "Cloudflare challenge unrecoverable")
+                    statusItem.setText("⌬ ⚠", tooltip: String(localized: "status.tooltip.cloudflareUnrecoverable",
+                        defaultValue: "Cloudflare challenge unrecoverable"))
                 }
             } else if e.isAuthRelated {
-                statusItem.setText("⌬ ⚠", tooltip: "Session expired — open app to re-login")
+                statusItem.setText("⌬ ⚠", tooltip: String(localized: "status.tooltip.sessionExpired",
+                    defaultValue: "Session expired — open app to re-login"))
             } else {
                 statusItem.setText("⌬ ⚠", tooltip: "\(e)")
             }
@@ -107,13 +111,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func render() {
         guard let snap = ctx.controller?.state.latest else {
-            statusItem.setText("⌬ —", tooltip: "No data")
+            statusItem.setText("⌬ —", tooltip: String(localized: "status.tooltip.noData",
+                defaultValue: "No data"))
             return
         }
         let pct = Int(snap.fraction5h * 100)
+        let weekPct = Int(snap.fractionWeek * 100)
         statusItem.setText(
             "⌬ \(pct)%",
-            tooltip: "5h: \(pct)% • Week: \(Int(snap.fractionWeek * 100))%")
+            tooltip: String(localized: "status.tooltip.usage \(pct) \(weekPct)" as String.LocalizationValue))
     }
 }
 

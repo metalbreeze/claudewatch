@@ -1,0 +1,99 @@
+/* Claude Watch — de (Deutsch) */
+
+/* ── Statusleisten-Tooltips ── */
+"status.tooltip.initializing" = "Claude Watch — wird initialisiert";
+"status.tooltip.initFailed %@" = "Initialisierung fehlgeschlagen: %@";
+"status.tooltip.notSignedIn" = "Nicht angemeldet — Rechtsklick → Aus cURL importieren…";
+"status.tooltip.cloudflareUnrecoverable" = "Cloudflare-Challenge nicht behebbar";
+"status.tooltip.sessionExpired" = "Sitzung abgelaufen — App öffnen, um sich erneut anzumelden";
+"status.tooltip.noData" = "Keine Daten";
+"status.tooltip.usage %lld %lld" = "5h: %lld%% • Woche: %lld%%";
+
+/* ── Kontextmenü (Rechtsklick) ── */
+"menu.importFromCURL" = "Aus cURL importieren…";
+"menu.settings" = "Einstellungen…";
+"menu.quit" = "Claude Watch beenden";
+
+/* ── Anmeldefenster ── */
+"login.window.title" = "Bei claude.ai anmelden";
+
+/* ── cURL-Importfenster ── */
+"cURL.window.title" = "Aus cURL importieren";
+"cURL.heading" = "Endpunkt und Cookies aus einem echten Browser importieren";
+"cURL.howTo.heading" = "So erhalten Sie den cURL:";
+"cURL.howTo.step1" = "1. Melden Sie sich in Safari oder Chrome bei claude.ai an.";
+"cURL.howTo.urlExample" = "2. Öffnen Sie die URL  claude.ai/settings/usage  mit geöffneten DevTools (Cmd-Option-I).";
+"cURL.howTo.step3" = "3. Klicken Sie auf den Tab \"Netzwerk\" und laden Sie die Seite neu.";
+"cURL.howTo.step4" = "4. Suchen Sie die Anfrage, deren URL wie folgt aussieht:";
+"cURL.howTo.responseHint" = "   Die Antwort ist ein kleines JSON mit Feldern wie \"five_hour\" und \"seven_day\".";
+"cURL.howTo.step5" = "5. Rechtsklick auf diese Anfrage → Kopieren → Als cURL kopieren.";
+"cURL.howTo.step6" = "6. Unten einfügen und auf \"Importieren\" klicken.";
+"cURL.howTo.windowFloats" = "(Dieses Fenster bleibt sichtbar, während Sie zum Browser wechseln.)";
+"cURL.button.cancel" = "Abbrechen";
+"cURL.button.import" = "Importieren";
+"cURL.error.notCurl" = "Sieht nicht nach einem curl-Befehl aus — muss mit 'curl ' beginnen.";
+"cURL.error.noURL" = "Keine URL im Befehl gefunden.";
+"cURL.error.wrongHost %@" = "Die URL muss auf claude.ai zeigen (Ihre zeigt auf %@).\nStellen Sie sicher, dass Sie den cURL der JSON-Nutzungsanfrage kopiert haben, keine Telemetrie- oder Analyseanfrage.";
+"cURL.error.wrongPath %@" = "Falscher Endpunkt: %@\n\nBenötigt wird die Anfrage an:\n  https://claude.ai/api/organizations/{your-org-uuid}/usage\n\nDie Antwort enthält JSON-Felder wie \"five_hour\" und \"seven_day\". Bootstrap-, Konto- und Analyseanfragen funktionieren nicht.";
+"cURL.error.missingSessionKey" = "Kein 'sessionKey'-Cookie gefunden. Stellen Sie sicher, dass Sie den cURL kopiert haben, während Sie bei claude.ai angemeldet waren (DevTools → Netzwerk).";
+"cURL.success.title" = "Importiert";
+"cURL.success.body" = "Endpunkt und Cookies gespeichert. Abfrage gestartet.\n\nPrüfen Sie die Menüleiste (oben rechts am Bildschirm) auf das ⌬-Symbol. Mit dem Mauszeiger darüber sehen Sie den Status:\n• ⌬ N%   — Abfrage erfolgreich\n• ⌬ ⚠    — Abfrage fehlgeschlagen; Tooltip zeigt den Grund\n• ⌬ —    — Noch keine Daten (erste Abfrage läuft)\n\nRechtsklick auf das Symbol für Einstellungen oder erneuten Import.";
+"cURL.failure.title" = "Import fehlgeschlagen";
+
+/* ── Einstellungsfenster ── */
+"settings.window.title" = "Claude Watch – Einstellungen";
+"settings.tab.account" = "Konto";
+"settings.tab.alerts" = "Benachrichtigungen";
+"settings.tab.data" = "Daten";
+
+/* ── Konto-Bereich ── */
+"settings.account.signedInAs %@" = "Angemeldet als %@";
+"settings.account.signOut" = "Abmelden";
+"settings.account.reLogin" = "Erneut anmelden";
+
+/* ── Benachrichtigungs-Bereich ── */
+"settings.alerts.fiveHourForecast" = "Warnen, bevor das 5h-Limit erreicht wird";
+"settings.alerts.fiveHourHit" = "Benachrichtigen, wenn das 5h-Limit erreicht ist";
+"settings.alerts.weekNinety" = "Benachrichtigen bei 90% des Wochenlimits";
+"settings.alerts.weekHundred" = "Benachrichtigen, wenn das Wochenlimit erreicht ist";
+"settings.alerts.authExpired" = "Benachrichtigen, wenn die Anmeldung abläuft";
+"settings.alerts.scrapeBroken" = "Benachrichtigen, wenn sich das Quellformat ändert";
+
+/* ── Daten-Bereich ── */
+"settings.data.exportCSV" = "Verlauf exportieren (CSV)";
+"settings.data.deleteAll" = "Alle lokalen und iCloud-Daten löschen";
+"settings.data.confirmDeleteTitle" = "Alle Daten löschen?";
+"settings.data.confirmDeleteBody" = "Dadurch wird die lokale SQLite-Datenbank gelöscht und Sie werden abgemeldet. Auf iCloud synchronisierte Daten auf diesem Gerät werden ebenfalls gelöscht.";
+"settings.data.confirmDeleteButton" = "Löschen";
+"settings.data.cancelButton" = "Abbrechen";
+
+/* ── Popover-Kopfzeile & Anzeigen ── */
+"popover.header.title" = "CLAUDE-NUTZUNG";
+"popover.gauge.5h" = "5h";
+"popover.gauge.week" = "Woche";
+
+/* ── Reset-Untertitel ── */
+"popover.reset.resetsIn %lld %lld" = "zurückgesetzt in %lldh %lldm";
+"popover.reset.resetsOn %@" = "zurückgesetzt am %@";
+
+/* ── Fehlerbeschriftungen ── */
+"popover.error.lastPollFailed" = "Letzte Abfrage fehlgeschlagen";
+"popover.error.authExpired" = "Sitzung abgelaufen. Rechtsklick → Aus cURL importieren… zum Aktualisieren.";
+"popover.error.cloudflare" = "Cloudflare-Challenge. Cookies müssen aktualisiert werden.";
+"popover.error.schemaDrift %@ %@" = "Schema-Änderung (%@). Antwort-Vorschau:\n%@";
+"popover.error.network %@ %@" = "Netzwerk: %@ %@";
+"popover.error.rateLimited %@" = "Rate-Limit erreicht. Wiederholen nach: %@";
+
+/* ── Prognose-Untertitel ── */
+"popover.forecast.building" = "⏱ Prognose wird erstellt…";
+"popover.forecast.likelyFullAt %@" = "⏱ voraussichtlich voll um %@";
+"popover.forecast.lowConfidence %@" = "⏱ ~%@ (geringe Konfidenz)";
+"popover.forecast.wontHitLimit" = "⏱ Limit wird in diesem Fenster nicht erreicht";
+"popover.forecast.stable" = "⏱ stabil";
+
+/* ── Fußzeile ── */
+"popover.footer.neverPolled" = "Noch nie abgefragt";
+"popover.footer.lastPollSecondsAgo %lld" = "Letzte Abfrage: vor %llds";
+"popover.footer.lastPollMinutesAgo %lld" = "Letzte Abfrage: vor %lldm";
+"popover.footer.lastPollHoursAgo %lld" = "Letzte Abfrage: vor %lldh";
+"popover.footer.refresh" = "Aktualisieren";

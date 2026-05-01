@@ -16,25 +16,38 @@ public struct NotificationDispatcher {
         try? await center.add(req)
     }
 
+    private func loc(_ key: String.LocalizationValue) -> String {
+        String(localized: key, bundle: .module)
+    }
+
     private func makeRequest(kind: AlertKind, snapshot s: UsageSnapshot, forecast f: ForecastResult?) -> UNNotificationRequest {
         let content = UNMutableNotificationContent()
         switch kind {
         case .fiveHourForecast:
-            content.title = "Approaching 5h limit"
+            content.title = loc("notification.fiveHourForecast.title")
             if let h = f?.projectedHitTime {
                 let df = DateFormatter(); df.timeStyle = .short
-                content.body = "At your current rate you'll hit the limit at \(df.string(from: h))."
-            } else { content.body = "Slow down or risk hitting the 5h limit." }
+                let timeStr = df.string(from: h)
+                content.body = loc("notification.fiveHourForecast.body \(timeStr)")
+            } else {
+                content.body = loc("notification.fiveHourForecast.bodyNoTime")
+            }
         case .fiveHourHit:
-            content.title = "5h limit reached"; content.body = "Your 5h window is exhausted."
+            content.title = loc("notification.fiveHourHit.title")
+            content.body  = loc("notification.fiveHourHit.body")
         case .weekNinety:
-            content.title = "Weekly usage at 90%"; content.body = "You've used 90% of your weekly cap."
+            content.title = loc("notification.weekNinety.title")
+            content.body  = loc("notification.weekNinety.body")
         case .weekHundred:
-            content.title = "Weekly limit reached"; content.body = "Resets at \(s.resetTimeWeek)."
+            content.title = loc("notification.weekHundred.title")
+            let resetStr = "\(s.resetTimeWeek)"
+            content.body = loc("notification.weekHundred.body \(resetStr)")
         case .authExpired:
-            content.title = "Claude.ai login expired"; content.body = "Tap to re-login."
+            content.title = loc("notification.authExpired.title")
+            content.body  = loc("notification.authExpired.body")
         case .scrapeBroken:
-            content.title = "Source format changed"; content.body = "Update Claude Usage to restore tracking."
+            content.title = loc("notification.scrapeBroken.title")
+            content.body  = loc("notification.scrapeBroken.body")
         }
         content.sound = .default
         return UNNotificationRequest(identifier: kind.rawValue + "-\(Int(Date().timeIntervalSince1970))",

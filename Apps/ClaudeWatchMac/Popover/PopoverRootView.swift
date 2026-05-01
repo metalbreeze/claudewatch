@@ -10,7 +10,7 @@ struct PopoverRootView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("CLAUDE USAGE")
+                Text("popover.header.title")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
@@ -24,7 +24,7 @@ struct PopoverRootView: View {
             // here when reporting issues.
             if let err = controller.state.lastError {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Last poll failed")
+                    Text("popover.error.lastPollFailed")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.red)
                     Text(errorDescription(err))
@@ -44,11 +44,11 @@ struct PopoverRootView: View {
                 // fill ↔ green line; teal "WEEK" + teal fill ↔ teal line.
                 // Danger is encoded separately in the percentage number
                 // (yellow ≥ 75%, red ≥ 90%) — see GaugeCardView.
-                GaugeCardView(label: "5h",
+                GaugeCardView(label: String(localized: "popover.gauge.5h", defaultValue: "5h"),
                     percent: controller.state.latest?.fraction5h ?? 0,
                     resetCaption: resetCaption(controller.state.latest?.resetTime5h),
                     tint: ChartPalette.actual5h)
-                GaugeCardView(label: "Week",
+                GaugeCardView(label: String(localized: "popover.gauge.week", defaultValue: "Week"),
                     percent: controller.state.latest?.fractionWeek ?? 0,
                     resetCaption: weeklyResetCaption(controller.state.latest?.resetTimeWeek),
                     tint: ChartPalette.actualWeek)
@@ -85,27 +85,34 @@ struct PopoverRootView: View {
     private func resetCaption(_ d: Date?) -> String {
         guard let d else { return "—" }
         let s = max(0, Int(d.timeIntervalSinceNow))
-        return "resets in \(s/3600)h \((s/60)%60)m"
+        let hours = s / 3600
+        let minutes = (s / 60) % 60
+        return String(localized: "popover.reset.resetsIn \(hours) \(minutes)" as String.LocalizationValue)
     }
+
     private func weeklyResetCaption(_ d: Date?) -> String {
         guard let d else { return "—" }
         let df = DateFormatter(); df.dateFormat = "E"
-        return "resets \(df.string(from: d))"
+        let day = df.string(from: d)
+        return String(localized: "popover.reset.resetsOn \(day)" as String.LocalizationValue)
     }
 
     private func errorDescription(_ e: ScrapeError) -> String {
         switch e {
         case .authExpired:
-            return "Session expired. Right-click → Import from cURL… to refresh."
+            return String(localized: "popover.error.authExpired",
+                defaultValue: "Session expired. Right-click → Import from cURL… to refresh.")
         case .cloudflareChallenge:
-            return "Cloudflare challenge. Cookies need refreshing."
+            return String(localized: "popover.error.cloudflare",
+                defaultValue: "Cloudflare challenge. Cookies need refreshing.")
         case .schemaDrift(let v, let payload):
             let preview = String(data: payload.prefix(200), encoding: .utf8) ?? "(unreadable)"
-            return "Schema drift (\(v)). Response preview:\n\(preview)"
+            return String(localized: "popover.error.schemaDrift \(v) \(preview)" as String.LocalizationValue)
         case .network(let url):
-            return "Network: \(url.code.rawValue) \(url.localizedDescription)"
+            return String(localized: "popover.error.network \(url.code.rawValue) \(url.localizedDescription)" as String.LocalizationValue)
         case .rateLimited(let retry):
-            return "Rate-limited. Retry-after: \(retry.map { "\(Int($0))s" } ?? "—")"
+            let retryStr = retry.map { "\(Int($0))s" } ?? "—"
+            return String(localized: "popover.error.rateLimited \(retryStr)" as String.LocalizationValue)
         case .unknown(let s):
             return s
         }

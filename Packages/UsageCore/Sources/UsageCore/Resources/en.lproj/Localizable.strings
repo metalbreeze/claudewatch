@@ -1,0 +1,15 @@
+/* UsageCore — en (base) — notification keys only */
+
+"notification.fiveHourForecast.title" = "Approaching 5h limit";
+"notification.fiveHourForecast.body %@" = "At your current rate you'll hit the limit at %@.";
+"notification.fiveHourForecast.bodyNoTime" = "Slow down or risk hitting the 5h limit.";
+"notification.fiveHourHit.title" = "5h limit reached";
+"notification.fiveHourHit.body" = "Your 5h window is exhausted.";
+"notification.weekNinety.title" = "Weekly usage at 90%";
+"notification.weekNinety.body" = "You've used 90% of your weekly cap.";
+"notification.weekHundred.title" = "Weekly limit reached";
+"notification.weekHundred.body %@" = "Resets at %@.";
+"notification.authExpired.title" = "Claude.ai login expired";
+"notification.authExpired.body" = "Tap to re-login.";
+"notification.scrapeBroken.title" = "Source format changed";
+"notification.scrapeBroken.body" = "Update Claude Usage to restore tracking.";

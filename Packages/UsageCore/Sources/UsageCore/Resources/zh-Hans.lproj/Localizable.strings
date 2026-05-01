@@ -1,0 +1,15 @@
+/* UsageCore — zh-Hans (简体中文) — notification keys only */
+
+"notification.fiveHourForecast.title" = "即将达到5小时限额";
+"notification.fiveHourForecast.body %@" = "按当前速率，您将于 %@ 达到限额。";
+"notification.fiveHourForecast.bodyNoTime" = "请放慢速度，否则可能触及5小时限额。";
+"notification.fiveHourHit.title" = "已达到5小时限额";
+"notification.fiveHourHit.body" = "您的5小时窗口已用尽。";
+"notification.weekNinety.title" = "每周用量达到90%";
+"notification.weekNinety.body" = "您已使用每周配额的90%。";
+"notification.weekHundred.title" = "已达到每周限额";
+"notification.weekHundred.body %@" = "将于 %@ 重置。";
+"notification.authExpired.title" = "Claude.ai 登录已过期";
+"notification.authExpired.body" = "点击重新登录。";
+"notification.scrapeBroken.title" = "数据源格式已变更";
+"notification.scrapeBroken.body" = "请更新 Claude Usage 以恢复追踪。";

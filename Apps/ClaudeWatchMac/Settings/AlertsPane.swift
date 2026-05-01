@@ -28,12 +28,24 @@ struct AlertsPane: View {
 
     private func label(_ k: AlertKind) -> String {
         switch k {
-        case .fiveHourForecast: return "Warn before hitting 5h limit"
-        case .fiveHourHit: return "Notify when 5h limit reached"
-        case .weekNinety: return "Notify at 90% of weekly limit"
-        case .weekHundred: return "Notify when weekly limit reached"
-        case .authExpired: return "Notify when login expires"
-        case .scrapeBroken: return "Notify when source format changes"
+        case .fiveHourForecast:
+            return String(localized: "settings.alerts.fiveHourForecast",
+                defaultValue: "Warn before hitting 5h limit")
+        case .fiveHourHit:
+            return String(localized: "settings.alerts.fiveHourHit",
+                defaultValue: "Notify when 5h limit reached")
+        case .weekNinety:
+            return String(localized: "settings.alerts.weekNinety",
+                defaultValue: "Notify at 90% of weekly limit")
+        case .weekHundred:
+            return String(localized: "settings.alerts.weekHundred",
+                defaultValue: "Notify when weekly limit reached")
+        case .authExpired:
+            return String(localized: "settings.alerts.authExpired",
+                defaultValue: "Notify when login expires")
+        case .scrapeBroken:
+            return String(localized: "settings.alerts.scrapeBroken",
+                defaultValue: "Notify when source format changes")
         }
     }
 }

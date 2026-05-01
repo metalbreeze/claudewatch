@@ -1,0 +1,15 @@
+/* UsageCore — es (Español) — notification keys only */
+
+"notification.fiveHourForecast.title" = "Acercándose al límite de 5h";
+"notification.fiveHourForecast.body %@" = "A tu ritmo actual alcanzarás el límite a las %@.";
+"notification.fiveHourForecast.bodyNoTime" = "Reduce el ritmo o arriesgas alcanzar el límite de 5h.";
+"notification.fiveHourHit.title" = "Límite de 5h alcanzado";
+"notification.fiveHourHit.body" = "Tu ventana de 5 horas se ha agotado.";
+"notification.weekNinety.title" = "Uso semanal al 90%";
+"notification.weekNinety.body" = "Has usado el 90% de tu límite semanal.";
+"notification.weekHundred.title" = "Límite semanal alcanzado";
+"notification.weekHundred.body %@" = "Se reinicia a las %@.";
+"notification.authExpired.title" = "Sesión de Claude.ai expirada";
+"notification.authExpired.body" = "Toca para volver a iniciar sesión.";
+"notification.scrapeBroken.title" = "Formato de fuente cambiado";
+"notification.scrapeBroken.body" = "Actualiza Claude Usage para restaurar el seguimiento.";

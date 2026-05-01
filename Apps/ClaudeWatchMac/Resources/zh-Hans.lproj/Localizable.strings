@@ -1,0 +1,99 @@
+/* Claude Watch — zh-Hans (简体中文) */
+
+/* ── 状态栏提示 ── */
+"status.tooltip.initializing" = "Claude Watch — 正在初始化";
+"status.tooltip.initFailed %@" = "初始化失败：%@";
+"status.tooltip.notSignedIn" = "未登录 — 右键 → 从 cURL 导入…";
+"status.tooltip.cloudflareUnrecoverable" = "Cloudflare 验证失败，无法恢复";
+"status.tooltip.sessionExpired" = "会话已过期 — 打开应用重新登录";
+"status.tooltip.noData" = "暂无数据";
+"status.tooltip.usage %lld %lld" = "5小时：%lld%% • 本周：%lld%%";
+
+/* ── 右键菜单 ── */
+"menu.importFromCURL" = "从 cURL 导入…";
+"menu.settings" = "设置…";
+"menu.quit" = "退出 Claude Watch";
+
+/* ── 登录窗口 ── */
+"login.window.title" = "登录 claude.ai";
+
+/* ── cURL 导入窗口 ── */
+"cURL.window.title" = "从 cURL 导入";
+"cURL.heading" = "从真实浏览器导入端点和 Cookie";
+"cURL.howTo.heading" = "如何获取 cURL：";
+"cURL.howTo.step1" = "1. 在 Safari 或 Chrome 中登录 claude.ai。";
+"cURL.howTo.urlExample" = "2. 打开网址 claude.ai/settings/usage，同时开启开发者工具（Cmd-Option-I）。";
+"cURL.howTo.step3" = "3. 点击「网络」标签，然后刷新页面。";
+"cURL.howTo.step4" = "4. 找到 URL 形如以下的请求：";
+"cURL.howTo.responseHint" = "   响应是包含 \"five_hour\" 和 \"seven_day\" 等字段的小型 JSON。";
+"cURL.howTo.step5" = "5. 右键该请求 → 拷贝 → 拷贝为 cURL。";
+"cURL.howTo.step6" = "6. 粘贴到下方并点击「导入」。";
+"cURL.howTo.windowFloats" = "（切换到浏览器时此窗口保持置顶。）";
+"cURL.button.cancel" = "取消";
+"cURL.button.import" = "导入";
+"cURL.error.notCurl" = "看起来不是 curl 命令 — 必须以 'curl ' 开头。";
+"cURL.error.noURL" = "命令中未找到 URL。";
+"cURL.error.wrongHost %@" = "URL 必须指向 claude.ai（您的指向了 %@）。\n请确保复制的是 JSON 用量请求的 cURL，而非遥测或分析请求。";
+"cURL.error.wrongPath %@" = "端点有误：%@\n\n需要的请求地址为：\n  https://claude.ai/api/organizations/{your-org-uuid}/usage\n\n其响应为包含 \"five_hour\" 和 \"seven_day\" 等字段的 JSON。Bootstrap、账户及分析请求均无效。";
+"cURL.error.missingSessionKey" = "未找到 'sessionKey' Cookie。请确保在登录 claude.ai 的状态下复制 cURL（开发者工具 → 网络）。";
+"cURL.success.title" = "导入成功";
+"cURL.success.body" = "端点和 Cookie 已保存，轮询已启动。\n\n请在菜单栏（屏幕右上角）查找 ⌬ 图标，悬停查看状态：\n• ⌬ N%   — 轮询成功\n• ⌬ ⚠    — 轮询失败；提示说明原因\n• ⌬ —    — 暂无数据（首次轮询仍在进行中）\n\n右键图标可进入设置或重新导入。";
+"cURL.failure.title" = "导入失败";
+
+/* ── 设置窗口 ── */
+"settings.window.title" = "Claude Watch 设置";
+"settings.tab.account" = "账户";
+"settings.tab.alerts" = "通知";
+"settings.tab.data" = "数据";
+
+/* ── 账户面板 ── */
+"settings.account.signedInAs %@" = "已登录：%@";
+"settings.account.signOut" = "退出登录";
+"settings.account.reLogin" = "重新登录";
+
+/* ── 通知面板 ── */
+"settings.alerts.fiveHourForecast" = "接近5小时限额前提醒";
+"settings.alerts.fiveHourHit" = "达到5小时限额时通知";
+"settings.alerts.weekNinety" = "使用达到每周限额90%时通知";
+"settings.alerts.weekHundred" = "达到每周限额时通知";
+"settings.alerts.authExpired" = "登录过期时通知";
+"settings.alerts.scrapeBroken" = "数据源格式变更时通知";
+
+/* ── 数据面板 ── */
+"settings.data.exportCSV" = "导出历史记录（CSV）";
+"settings.data.deleteAll" = "删除所有本地及 iCloud 数据";
+"settings.data.confirmDeleteTitle" = "删除所有数据？";
+"settings.data.confirmDeleteBody" = "这将删除本地 SQLite 数据库并退出登录，此设备上同步到 iCloud 的数据也将被清除。";
+"settings.data.confirmDeleteButton" = "删除";
+"settings.data.cancelButton" = "取消";
+
+/* ── 弹窗标题 & 仪表盘 ── */
+"popover.header.title" = "CLAUDE 用量";
+"popover.gauge.5h" = "5小时";
+"popover.gauge.week" = "本周";
+
+/* ── 重置说明 ── */
+"popover.reset.resetsIn %lld %lld" = "%lld小时%lld分钟后重置";
+"popover.reset.resetsOn %@" = "%@ 重置";
+
+/* ── 错误标签 ── */
+"popover.error.lastPollFailed" = "上次轮询失败";
+"popover.error.authExpired" = "会话已过期。右键 → 从 cURL 导入… 刷新。";
+"popover.error.cloudflare" = "Cloudflare 验证失败，需要刷新 Cookie。";
+"popover.error.schemaDrift %@ %@" = "数据结构变更（%@）。响应预览：\n%@";
+"popover.error.network %@ %@" = "网络错误：%@ %@";
+"popover.error.rateLimited %@" = "请求受限。重试等待时间：%@";
+
+/* ── 预测说明 ── */
+"popover.forecast.building" = "⏱ 正在生成预测…";
+"popover.forecast.likelyFullAt %@" = "⏱ 预计 %@ 达到上限";
+"popover.forecast.lowConfidence %@" = "⏱ ~%@（置信度低）";
+"popover.forecast.wontHitLimit" = "⏱ 本窗口期内不会达到限额";
+"popover.forecast.stable" = "⏱ 用量平稳";
+
+/* ── 底栏 ── */
+"popover.footer.neverPolled" = "从未轮询";
+"popover.footer.lastPollSecondsAgo %lld" = "上次轮询：%lld秒前";
+"popover.footer.lastPollMinutesAgo %lld" = "上次轮询：%lld分钟前";
+"popover.footer.lastPollHoursAgo %lld" = "上次轮询：%lld小时前";
+"popover.footer.refresh" = "刷新";

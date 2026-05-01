@@ -1,0 +1,99 @@
+/* Claude Watch — en (base) */
+
+/* ── Status bar tooltips ── */
+"status.tooltip.initializing" = "Claude Watch — initializing";
+"status.tooltip.initFailed %@" = "Init failed: %@";
+"status.tooltip.notSignedIn" = "Not signed in — right-click → Import from cURL…";
+"status.tooltip.cloudflareUnrecoverable" = "Cloudflare challenge unrecoverable";
+"status.tooltip.sessionExpired" = "Session expired — open app to re-login";
+"status.tooltip.noData" = "No data";
+"status.tooltip.usage %lld %lld" = "5h: %lld%% • Week: %lld%%";
+
+/* ── Right-click menu ── */
+"menu.importFromCURL" = "Import from cURL…";
+"menu.settings" = "Settings…";
+"menu.quit" = "Quit Claude Watch";
+
+/* ── Login window ── */
+"login.window.title" = "Sign in to claude.ai";
+
+/* ── cURL import window ── */
+"cURL.window.title" = "Import from cURL";
+"cURL.heading" = "Import endpoint + cookies from a real browser";
+"cURL.howTo.heading" = "How to grab the cURL:";
+"cURL.howTo.step1" = "1. In Safari or Chrome, sign in to claude.ai.";
+"cURL.howTo.urlExample" = "2. Open the URL  claude.ai/settings/usage  with DevTools open (Cmd-Option-I).";
+"cURL.howTo.step3" = "3. Click the Network tab, then reload the page.";
+"cURL.howTo.step4" = "4. Find the request whose URL looks like:";
+"cURL.howTo.responseHint" = "   The response is small JSON with fields like \"five_hour\" and \"seven_day\".";
+"cURL.howTo.step5" = "5. Right-click that request → Copy → Copy as cURL.";
+"cURL.howTo.step6" = "6. Paste below and click Import.";
+"cURL.howTo.windowFloats" = "(This window stays on top while you switch to the browser.)";
+"cURL.button.cancel" = "Cancel";
+"cURL.button.import" = "Import";
+"cURL.error.notCurl" = "Doesn't look like a curl command — must start with 'curl '.";
+"cURL.error.noURL" = "No URL found in the command.";
+"cURL.error.wrongHost %@" = "URL must point to claude.ai (yours points to %@).\nMake sure you copied the cURL of the JSON usage request, not a telemetry / analytics request.";
+"cURL.error.wrongPath %@" = "Wrong endpoint: %@\n\nWe need the request to:\n  https://claude.ai/api/organizations/{your-org-uuid}/usage\n\nIts response is JSON with fields like \"five_hour\" and \"seven_day\". Bootstrap, account, and analytics requests won't work.";
+"cURL.error.missingSessionKey" = "No 'sessionKey' cookie found. Make sure you copied the cURL while signed in to claude.ai (DevTools → Network).";
+"cURL.success.title" = "Imported";
+"cURL.success.body" = "Endpoint and cookies saved. Polling has started.\n\nCheck the menu bar (top-right of your screen) for the ⌬ icon. Hover it for status:\n• ⌬ N%   — polling succeeded\n• ⌬ ⚠    — polling failed; tooltip shows why\n• ⌬ —    — no data yet (first poll still running)\n\nRight-click the icon for Settings or to re-import.";
+"cURL.failure.title" = "Import failed";
+
+/* ── Settings window ── */
+"settings.window.title" = "Claude Watch Settings";
+"settings.tab.account" = "Account";
+"settings.tab.alerts" = "Alerts";
+"settings.tab.data" = "Data";
+
+/* ── Account pane ── */
+"settings.account.signedInAs %@" = "Signed in as %@";
+"settings.account.signOut" = "Sign out";
+"settings.account.reLogin" = "Re-login";
+
+/* ── Alerts pane ── */
+"settings.alerts.fiveHourForecast" = "Warn before hitting 5h limit";
+"settings.alerts.fiveHourHit" = "Notify when 5h limit reached";
+"settings.alerts.weekNinety" = "Notify at 90% of weekly limit";
+"settings.alerts.weekHundred" = "Notify when weekly limit reached";
+"settings.alerts.authExpired" = "Notify when login expires";
+"settings.alerts.scrapeBroken" = "Notify when source format changes";
+
+/* ── Data pane ── */
+"settings.data.exportCSV" = "Export history (CSV)";
+"settings.data.deleteAll" = "Delete all local + iCloud data";
+"settings.data.confirmDeleteTitle" = "Delete all data?";
+"settings.data.confirmDeleteBody" = "This removes the local SQLite database and signs you out. iCloud-synced rows on this device are also forgotten.";
+"settings.data.confirmDeleteButton" = "Delete";
+"settings.data.cancelButton" = "Cancel";
+
+/* ── Popover header & gauges ── */
+"popover.header.title" = "CLAUDE USAGE";
+"popover.gauge.5h" = "5h";
+"popover.gauge.week" = "Week";
+
+/* ── Popover reset captions ── */
+"popover.reset.resetsIn %lld %lld" = "resets in %lldh %lldm";
+"popover.reset.resetsOn %@" = "resets %@";
+
+/* ── Popover error labels ── */
+"popover.error.lastPollFailed" = "Last poll failed";
+"popover.error.authExpired" = "Session expired. Right-click → Import from cURL… to refresh.";
+"popover.error.cloudflare" = "Cloudflare challenge. Cookies need refreshing.";
+"popover.error.schemaDrift %@ %@" = "Schema drift (%@). Response preview:\n%@";
+"popover.error.network %@ %@" = "Network: %@ %@";
+"popover.error.rateLimited %@" = "Rate-limited. Retry-after: %@";
+
+/* ── Forecast caption ── */
+"popover.forecast.building" = "⏱ Building forecast…";
+"popover.forecast.likelyFullAt %@" = "⏱ likely full at %@";
+"popover.forecast.lowConfidence %@" = "⏱ ~%@ (low confidence)";
+"popover.forecast.wontHitLimit" = "⏱ won't hit limit this window";
+"popover.forecast.stable" = "⏱ stable";
+
+/* ── Footer ── */
+"popover.footer.neverPolled" = "Never polled";
+"popover.footer.lastPollSecondsAgo %lld" = "Last poll: %llds ago";
+"popover.footer.lastPollMinutesAgo %lld" = "Last poll: %lldm ago";
+"popover.footer.lastPollHoursAgo %lld" = "Last poll: %lldh ago";
+"popover.footer.refresh" = "Refresh";

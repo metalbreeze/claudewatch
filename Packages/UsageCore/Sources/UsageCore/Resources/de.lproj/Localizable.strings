@@ -1,0 +1,15 @@
+/* UsageCore — de (Deutsch) — notification keys only */
+
+"notification.fiveHourForecast.title" = "Annäherung an das 5h-Limit";
+"notification.fiveHourForecast.body %@" = "Bei Ihrem aktuellen Tempo werden Sie das Limit um %@ erreichen.";
+"notification.fiveHourForecast.bodyNoTime" = "Verlangsamen Sie das Tempo, um das 5h-Limit nicht zu erreichen.";
+"notification.fiveHourHit.title" = "5h-Limit erreicht";
+"notification.fiveHourHit.body" = "Ihr 5-Stunden-Fenster ist ausgeschöpft.";
+"notification.weekNinety.title" = "Wochennutzung bei 90%";
+"notification.weekNinety.body" = "Sie haben 90% Ihres Wochenlimits verwendet.";
+"notification.weekHundred.title" = "Wochenlimit erreicht";
+"notification.weekHundred.body %@" = "Wird um %@ zurückgesetzt.";
+"notification.authExpired.title" = "Claude.ai-Anmeldung abgelaufen";
+"notification.authExpired.body" = "Tippen Sie, um sich erneut anzumelden.";
+"notification.scrapeBroken.title" = "Quellformat geändert";
+"notification.scrapeBroken.body" = "Aktualisieren Sie Claude Usage, um die Verfolgung wiederherzustellen.";

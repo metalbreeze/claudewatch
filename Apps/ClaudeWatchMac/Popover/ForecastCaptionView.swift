@@ -21,15 +21,18 @@ struct ForecastCaptionView: View {
     }
 
     private var captionText: String {
-        guard let f = forecast else { return "⏱ Building forecast…" }
+        guard let f = forecast else {
+            return String(localized: "popover.forecast.building",
+                defaultValue: "⏱ Building forecast…")
+        }
 
         if let hit = f.projectedHitTime {
             let df = DateFormatter()
             df.timeStyle = .short
             let timeStr = df.string(from: hit)
             return f.isLowConfidence
-                ? "⏱ ~\(timeStr) (low confidence)"
-                : "⏱ likely full at \(timeStr)"
+                ? String(localized: "popover.forecast.lowConfidence \(timeStr)" as String.LocalizationValue)
+                : String(localized: "popover.forecast.likelyFullAt \(timeStr)" as String.LocalizationValue)
         }
 
         // No projected hit. Disambiguate "stable" from "trending up but
@@ -37,7 +40,9 @@ struct ForecastCaptionView: View {
         // 0.0001 threshold mirrors LinearForecaster's hit-time clamp,
         // so UI labels stay coherent with backend math.
         return f.slope > 0.0001
-            ? "⏱ won't hit limit this window"
-            : "⏱ stable"
+            ? String(localized: "popover.forecast.wontHitLimit",
+                defaultValue: "⏱ won't hit limit this window")
+            : String(localized: "popover.forecast.stable",
+                defaultValue: "⏱ stable")
     }
 }

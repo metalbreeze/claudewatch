@@ -6,14 +6,18 @@ struct DataPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Button("Export history (CSV)") { exportCSV() }
-            Button("Delete all local + iCloud data", role: .destructive) {
+            Button("settings.data.exportCSV") { exportCSV() }
+            Button("settings.data.deleteAll", role: .destructive) {
                 let alert = NSAlert()
-                alert.messageText = "Delete all data?"
-                alert.informativeText = "This removes the local SQLite database and signs you out. iCloud-synced rows on this device are also forgotten."
+                alert.messageText = String(localized: "settings.data.confirmDeleteTitle",
+                    defaultValue: "Delete all data?")
+                alert.informativeText = String(localized: "settings.data.confirmDeleteBody",
+                    defaultValue: "This removes the local SQLite database and signs you out. iCloud-synced rows on this device are also forgotten.")
                 alert.alertStyle = .critical
-                alert.addButton(withTitle: "Delete")
-                alert.addButton(withTitle: "Cancel")
+                alert.addButton(withTitle: String(localized: "settings.data.confirmDeleteButton",
+                    defaultValue: "Delete"))
+                alert.addButton(withTitle: String(localized: "settings.data.cancelButton",
+                    defaultValue: "Cancel"))
                 if alert.runModal() == .alertFirstButtonReturn {
                     try? FileManager.default.removeItem(at: dbURL())
                     NSApp.terminate(nil)
@@ -34,6 +38,7 @@ struct DataPane: View {
 
     private func exportCSV() {
         let panel = NSSavePanel()
+        // Keep filename in English/Latin — not localized per spec.
         panel.nameFieldStringValue = "claude-watch.csv"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         var csv = "timestamp,used_5h,ceiling_5h,used_week,ceiling_week,plan\n"

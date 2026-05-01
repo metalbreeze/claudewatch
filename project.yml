@@ -44,6 +44,10 @@ targets:
         excludes:
           - "Info.plist"
           - "ClaudeWatchMac.entitlements"
+      # Each .lproj/Localizable.strings is a variant of one logical
+      # localized resource. XcodeGen detects the .lproj naming
+      # convention and groups them automatically.
+      - path: Apps/ClaudeWatchMac/Resources
     info:
       path: Apps/ClaudeWatchMac/Info.plist
       properties:
@@ -55,6 +59,20 @@ targets:
         NSHumanReadableCopyright: ""
         NSSupportsAutomaticTermination: YES
         NSSupportsSuddenTermination: YES
+        # Languages the bundle ships translations for. macOS picks the
+        # closest match to the user's preferred language list at
+        # ~/Library/Preferences/.GlobalPreferences.plist; falls back to
+        # CFBundleDevelopmentRegion (= en) if none match.
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations:
+          - en
+          - zh-Hans
+          - zh-Hant
+          - ja
+          - ko
+          - es
+          - de
+          - fr
     entitlements:
       path: Apps/ClaudeWatchMac/ClaudeWatchMac.entitlements
       properties:

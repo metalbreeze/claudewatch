@@ -18,7 +18,8 @@ final class StatusItemController {
     init() {
         if let button = item.button {
             button.title = "⌬ ⏳"
-            button.toolTip = "Claude Watch — initializing"
+            button.toolTip = String(localized: "status.tooltip.initializing",
+                defaultValue: "Claude Watch — initializing")
             button.target = self
             button.action = #selector(buttonClicked)
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
@@ -41,17 +42,24 @@ final class StatusItemController {
 
     private func showRightClickMenu() {
         let menu = NSMenu()
-        let importItem = NSMenuItem(title: "Import from cURL…",
-                                    action: #selector(triggerImportCURL),
-                                    keyEquivalent: "i")
+        let importItem = NSMenuItem(
+            title: String(localized: "menu.importFromCURL", defaultValue: "Import from cURL…"),
+            action: #selector(triggerImportCURL),
+            keyEquivalent: "i")
         importItem.target = self
         menu.addItem(importItem)
         menu.addItem(.separator())
-        let settings = NSMenuItem(title: "Settings…", action: #selector(triggerSettings), keyEquivalent: ",")
+        let settings = NSMenuItem(
+            title: String(localized: "menu.settings", defaultValue: "Settings…"),
+            action: #selector(triggerSettings),
+            keyEquivalent: ",")
         settings.target = self
         menu.addItem(settings)
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Quit Claude Watch", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(
+            title: String(localized: "menu.quit", defaultValue: "Quit Claude Watch"),
+            action: #selector(NSApplication.terminate(_:)),
+            keyEquivalent: "q"))
         // Show, then immediately remove so it doesn't stay attached.
         item.menu = menu
         item.button?.performClick(nil)

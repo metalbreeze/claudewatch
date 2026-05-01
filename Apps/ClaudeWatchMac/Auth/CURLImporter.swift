@@ -39,15 +39,18 @@ public enum CURLParseError: Error, CustomStringConvertible {
     public var description: String {
         switch self {
         case .notCurl:
-            return "Doesn't look like a curl command — must start with 'curl '."
+            return String(localized: "cURL.error.notCurl",
+                defaultValue: "Doesn't look like a curl command — must start with 'curl '.")
         case .noURL:
-            return "No URL found in the command."
+            return String(localized: "cURL.error.noURL",
+                defaultValue: "No URL found in the command.")
         case .wrongHost(let host):
-            return "URL host '\(host)' is not claude.ai — wrong cURL pasted."
+            return String(localized: "cURL.error.wrongHost \(host)" as String.LocalizationValue)
         case .wrongPath(let path):
-            return "URL path '\(path)' doesn't look like a usage endpoint."
+            return String(localized: "cURL.error.wrongPath \(path)" as String.LocalizationValue)
         case .missingSessionKey:
-            return "No 'sessionKey' cookie found. Make sure you copied the cURL from a request to claude.ai while signed in."
+            return String(localized: "cURL.error.missingSessionKey",
+                defaultValue: "No 'sessionKey' cookie found. Make sure you copied the cURL from a request to claude.ai while signed in.")
         }
     }
 }

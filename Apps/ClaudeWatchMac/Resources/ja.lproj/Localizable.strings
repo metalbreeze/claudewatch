@@ -1,0 +1,99 @@
+/* Claude Watch — ja (日本語) */
+
+/* ── ステータスバーツールチップ ── */
+"status.tooltip.initializing" = "Claude Watch — 初期化中";
+"status.tooltip.initFailed %@" = "初期化に失敗しました：%@";
+"status.tooltip.notSignedIn" = "未ログイン — 右クリック → cURL からインポート…";
+"status.tooltip.cloudflareUnrecoverable" = "Cloudflare 認証に失敗しました。復旧できません";
+"status.tooltip.sessionExpired" = "セッションが期限切れです — アプリを開いて再ログインしてください";
+"status.tooltip.noData" = "データなし";
+"status.tooltip.usage %lld %lld" = "5時間：%lld%% • 週間：%lld%%";
+
+/* ── 右クリックメニュー ── */
+"menu.importFromCURL" = "cURL からインポート…";
+"menu.settings" = "設定…";
+"menu.quit" = "Claude Watch を終了";
+
+/* ── ログインウィンドウ ── */
+"login.window.title" = "claude.ai にサインイン";
+
+/* ── cURL インポートウィンドウ ── */
+"cURL.window.title" = "cURL からインポート";
+"cURL.heading" = "実際のブラウザからエンドポイントと Cookie をインポート";
+"cURL.howTo.heading" = "cURL の取得方法：";
+"cURL.howTo.step1" = "1. Safari または Chrome で claude.ai にサインインします。";
+"cURL.howTo.urlExample" = "2. DevTools を開いた状態で（Cmd-Option-I）claude.ai/settings/usage を開きます。";
+"cURL.howTo.step3" = "3. 「ネットワーク」タブをクリックし、ページをリロードします。";
+"cURL.howTo.step4" = "4. URL が以下のようなリクエストを探します：";
+"cURL.howTo.responseHint" = "   レスポンスは \"five_hour\" や \"seven_day\" などのフィールドを含む小さな JSON です。";
+"cURL.howTo.step5" = "5. そのリクエストを右クリック → コピー → cURL としてコピー。";
+"cURL.howTo.step6" = "6. 下のフィールドに貼り付けて「インポート」をクリックします。";
+"cURL.howTo.windowFloats" = "（ブラウザに切り替えている間もこのウィンドウは前面に表示されます。）";
+"cURL.button.cancel" = "キャンセル";
+"cURL.button.import" = "インポート";
+"cURL.error.notCurl" = "curl コマンドではありません — 'curl ' で始まる必要があります。";
+"cURL.error.noURL" = "コマンド内に URL が見つかりません。";
+"cURL.error.wrongHost %@" = "URL は claude.ai を指している必要があります（現在 %@ を指しています）。\nJSON の使用量リクエストの cURL をコピーしているか確認してください（テレメトリや分析リクエストではなく）。";
+"cURL.error.wrongPath %@" = "エンドポイントが間違っています：%@\n\n必要なリクエスト先：\n  https://claude.ai/api/organizations/{your-org-uuid}/usage\n\nレスポンスは \"five_hour\" や \"seven_day\" などのフィールドを含む JSON です。Bootstrap・アカウント・分析リクエストは使用できません。";
+"cURL.error.missingSessionKey" = "'sessionKey' Cookie が見つかりません。claude.ai にサインインした状態で cURL をコピーしてください（DevTools → ネットワーク）。";
+"cURL.success.title" = "インポート完了";
+"cURL.success.body" = "エンドポイントと Cookie を保存しました。ポーリングを開始しました。\n\nメニューバー（画面右上）の ⌬ アイコンを確認してください。ホバーでステータス表示：\n• ⌬ N%   — ポーリング成功\n• ⌬ ⚠    — ポーリング失敗。ツールチップに理由が表示されます\n• ⌬ —    — データなし（最初のポーリングが進行中）\n\nアイコンを右クリックすると設定や再インポートができます。";
+"cURL.failure.title" = "インポートに失敗しました";
+
+/* ── 設定ウィンドウ ── */
+"settings.window.title" = "Claude Watch 設定";
+"settings.tab.account" = "アカウント";
+"settings.tab.alerts" = "通知";
+"settings.tab.data" = "データ";
+
+/* ── アカウントパネル ── */
+"settings.account.signedInAs %@" = "%@ でログイン中";
+"settings.account.signOut" = "サインアウト";
+"settings.account.reLogin" = "再ログイン";
+
+/* ── 通知パネル ── */
+"settings.alerts.fiveHourForecast" = "5時間上限に近づいたら警告する";
+"settings.alerts.fiveHourHit" = "5時間上限に達したら通知する";
+"settings.alerts.weekNinety" = "週間上限の90%に達したら通知する";
+"settings.alerts.weekHundred" = "週間上限に達したら通知する";
+"settings.alerts.authExpired" = "ログインが期限切れになったら通知する";
+"settings.alerts.scrapeBroken" = "ソース形式が変更されたら通知する";
+
+/* ── データパネル ── */
+"settings.data.exportCSV" = "履歴をエクスポート（CSV）";
+"settings.data.deleteAll" = "ローカルおよび iCloud データをすべて削除";
+"settings.data.confirmDeleteTitle" = "すべてのデータを削除しますか？";
+"settings.data.confirmDeleteBody" = "ローカルの SQLite データベースを削除してサインアウトします。このデバイスで iCloud に同期された行も削除されます。";
+"settings.data.confirmDeleteButton" = "削除";
+"settings.data.cancelButton" = "キャンセル";
+
+/* ── ポップオーバーヘッダー & ゲージ ── */
+"popover.header.title" = "CLAUDE 使用量";
+"popover.gauge.5h" = "5時間";
+"popover.gauge.week" = "週間";
+
+/* ── リセットキャプション ── */
+"popover.reset.resetsIn %lld %lld" = "%lld時間%lld分後にリセット";
+"popover.reset.resetsOn %@" = "%@ にリセット";
+
+/* ── エラーラベル ── */
+"popover.error.lastPollFailed" = "最後のポーリングに失敗しました";
+"popover.error.authExpired" = "セッションが期限切れです。右クリック → cURL からインポート… で更新してください。";
+"popover.error.cloudflare" = "Cloudflare 認証が必要です。Cookie を更新してください。";
+"popover.error.schemaDrift %@ %@" = "スキーマ変更（%@）。レスポンスプレビュー：\n%@";
+"popover.error.network %@ %@" = "ネットワークエラー：%@ %@";
+"popover.error.rateLimited %@" = "レート制限中。リトライまで：%@";
+
+/* ── 予測キャプション ── */
+"popover.forecast.building" = "⏱ 予測を作成中…";
+"popover.forecast.likelyFullAt %@" = "⏱ %@ に上限に達する見込み";
+"popover.forecast.lowConfidence %@" = "⏱ ~%@（低信頼度）";
+"popover.forecast.wontHitLimit" = "⏱ このウィンドウ内では上限に達しません";
+"popover.forecast.stable" = "⏱ 安定しています";
+
+/* ── フッター ── */
+"popover.footer.neverPolled" = "未ポーリング";
+"popover.footer.lastPollSecondsAgo %lld" = "最終ポーリング：%lld秒前";
+"popover.footer.lastPollMinutesAgo %lld" = "最終ポーリング：%lld分前";
+"popover.footer.lastPollHoursAgo %lld" = "最終ポーリング：%lld時間前";
+"popover.footer.refresh" = "更新";

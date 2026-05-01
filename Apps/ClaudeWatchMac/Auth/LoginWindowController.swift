@@ -11,7 +11,7 @@ final class LoginWindowController {
             contentRect: .init(x: 0, y: 0, width: 500, height: 700),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered, defer: false)
-        win.title = "Sign in to claude.ai"
+        win.title = String(localized: "login.window.title", defaultValue: "Sign in to claude.ai")
         win.center()
 
         let view = LoginWebView(onSuccess: { pkg in

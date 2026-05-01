@@ -1,0 +1,15 @@
+/* UsageCore — ja (日本語) — notification keys only */
+
+"notification.fiveHourForecast.title" = "5時間上限に近づいています";
+"notification.fiveHourForecast.body %@" = "現在のペースでは、%@ に上限に達する見込みです。";
+"notification.fiveHourForecast.bodyNoTime" = "ペースを落とさないと5時間上限に達する可能性があります。";
+"notification.fiveHourHit.title" = "5時間上限に達しました";
+"notification.fiveHourHit.body" = "5時間ウィンドウを使い切りました。";
+"notification.weekNinety.title" = "週間使用量が90%に達しました";
+"notification.weekNinety.body" = "週間上限の90%を使用しました。";
+"notification.weekHundred.title" = "週間上限に達しました";
+"notification.weekHundred.body %@" = "%@ にリセットされます。";
+"notification.authExpired.title" = "Claude.ai のログインが期限切れです";
+"notification.authExpired.body" = "タップして再ログインしてください。";
+"notification.scrapeBroken.title" = "ソース形式が変更されました";
+"notification.scrapeBroken.body" = "トラッキングを復元するには Claude Usage をアップデートしてください。";

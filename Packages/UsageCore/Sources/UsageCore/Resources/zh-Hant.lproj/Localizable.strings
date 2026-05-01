@@ -1,0 +1,15 @@
+/* UsageCore — zh-Hant (繁體中文) — notification keys only */
+
+"notification.fiveHourForecast.title" = "即將達到5小時限額";
+"notification.fiveHourForecast.body %@" = "依目前速率，您將於 %@ 達到限額。";
+"notification.fiveHourForecast.bodyNoTime" = "請放慢速度，否則可能觸及5小時限額。";
+"notification.fiveHourHit.title" = "已達到5小時限額";
+"notification.fiveHourHit.body" = "您的5小時視窗已用盡。";
+"notification.weekNinety.title" = "每週用量達90%";
+"notification.weekNinety.body" = "您已使用每週配額的90%。";
+"notification.weekHundred.title" = "已達到每週限額";
+"notification.weekHundred.body %@" = "將於 %@ 重置。";
+"notification.authExpired.title" = "Claude.ai 登入已過期";
+"notification.authExpired.body" = "點一下以重新登入。";
+"notification.scrapeBroken.title" = "資料來源格式已變更";
+"notification.scrapeBroken.body" = "請更新 Claude Usage 以恢復追蹤。";

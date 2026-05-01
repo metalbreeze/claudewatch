@@ -7,13 +7,13 @@ struct AccountPane: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Signed in as \(email)")
+            Text("settings.account.signedInAs \(email)")
             HStack {
-                Button("Sign out") {
+                Button("settings.account.signOut") {
                     try? ctx.cookieStore.clear()
                     NSApp.terminate(nil)
                 }
-                Button("Re-login") {
+                Button("settings.account.reLogin") {
                     LoginWindowController.show(ctx: ctx, onComplete: {})
                 }
             }

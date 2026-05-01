@@ -1,0 +1,99 @@
+/* Claude Watch — es (Español) */
+
+/* ── Tooltips de la barra de estado ── */
+"status.tooltip.initializing" = "Claude Watch — inicializando";
+"status.tooltip.initFailed %@" = "Error de inicio: %@";
+"status.tooltip.notSignedIn" = "Sin sesión iniciada — clic derecho → Importar desde cURL…";
+"status.tooltip.cloudflareUnrecoverable" = "Reto de Cloudflare irrecuperable";
+"status.tooltip.sessionExpired" = "Sesión expirada — abre la app para volver a iniciar sesión";
+"status.tooltip.noData" = "Sin datos";
+"status.tooltip.usage %lld %lld" = "5h: %lld%% • Semana: %lld%%";
+
+/* ── Menú contextual ── */
+"menu.importFromCURL" = "Importar desde cURL…";
+"menu.settings" = "Ajustes…";
+"menu.quit" = "Salir de Claude Watch";
+
+/* ── Ventana de inicio de sesión ── */
+"login.window.title" = "Inicia sesión en claude.ai";
+
+/* ── Ventana de importación cURL ── */
+"cURL.window.title" = "Importar desde cURL";
+"cURL.heading" = "Importar endpoint y cookies desde un navegador real";
+"cURL.howTo.heading" = "Cómo obtener el cURL:";
+"cURL.howTo.step1" = "1. En Safari o Chrome, inicia sesión en claude.ai.";
+"cURL.howTo.urlExample" = "2. Abre la URL  claude.ai/settings/usage  con DevTools abierto (Cmd-Option-I).";
+"cURL.howTo.step3" = "3. Haz clic en la pestaña Red y recarga la página.";
+"cURL.howTo.step4" = "4. Encuentra la solicitud cuya URL tiene el siguiente aspecto:";
+"cURL.howTo.responseHint" = "   La respuesta es un JSON pequeño con campos como \"five_hour\" y \"seven_day\".";
+"cURL.howTo.step5" = "5. Clic derecho en esa solicitud → Copiar → Copiar como cURL.";
+"cURL.howTo.step6" = "6. Pega abajo y haz clic en Importar.";
+"cURL.howTo.windowFloats" = "(Esta ventana se mantiene encima mientras cambias al navegador.)";
+"cURL.button.cancel" = "Cancelar";
+"cURL.button.import" = "Importar";
+"cURL.error.notCurl" = "No parece un comando curl — debe empezar con 'curl '.";
+"cURL.error.noURL" = "No se encontró ninguna URL en el comando.";
+"cURL.error.wrongHost %@" = "La URL debe apuntar a claude.ai (la tuya apunta a %@).\nAsegúrate de haber copiado el cURL de la solicitud JSON de uso, no una de telemetría o analítica.";
+"cURL.error.wrongPath %@" = "Endpoint incorrecto: %@\n\nNecesitamos la solicitud a:\n  https://claude.ai/api/organizations/{your-org-uuid}/usage\n\nSu respuesta es JSON con campos como \"five_hour\" y \"seven_day\". Las solicitudes de Bootstrap, cuenta y analítica no funcionarán.";
+"cURL.error.missingSessionKey" = "No se encontró la cookie 'sessionKey'. Asegúrate de haber copiado el cURL con sesión iniciada en claude.ai (DevTools → Red).";
+"cURL.success.title" = "Importado";
+"cURL.success.body" = "Endpoint y cookies guardados. El sondeo ha comenzado.\n\nRevisa la barra de menús (parte superior derecha de la pantalla) para el ícono ⌬. Pasa el cursor para ver el estado:\n• ⌬ N%   — sondeo exitoso\n• ⌬ ⚠    — sondeo fallido; el tooltip muestra el motivo\n• ⌬ —    — sin datos aún (primer sondeo en curso)\n\nHaz clic derecho en el ícono para acceder a Ajustes o reimportar.";
+"cURL.failure.title" = "Error al importar";
+
+/* ── Ventana de ajustes ── */
+"settings.window.title" = "Ajustes de Claude Watch";
+"settings.tab.account" = "Cuenta";
+"settings.tab.alerts" = "Alertas";
+"settings.tab.data" = "Datos";
+
+/* ── Panel de cuenta ── */
+"settings.account.signedInAs %@" = "Sesión iniciada como %@";
+"settings.account.signOut" = "Cerrar sesión";
+"settings.account.reLogin" = "Volver a iniciar sesión";
+
+/* ── Panel de alertas ── */
+"settings.alerts.fiveHourForecast" = "Avisar antes de alcanzar el límite de 5h";
+"settings.alerts.fiveHourHit" = "Notificar al alcanzar el límite de 5h";
+"settings.alerts.weekNinety" = "Notificar al llegar al 90% del límite semanal";
+"settings.alerts.weekHundred" = "Notificar al alcanzar el límite semanal";
+"settings.alerts.authExpired" = "Notificar cuando expire el inicio de sesión";
+"settings.alerts.scrapeBroken" = "Notificar cuando cambie el formato de la fuente";
+
+/* ── Panel de datos ── */
+"settings.data.exportCSV" = "Exportar historial (CSV)";
+"settings.data.deleteAll" = "Eliminar todos los datos locales e iCloud";
+"settings.data.confirmDeleteTitle" = "¿Eliminar todos los datos?";
+"settings.data.confirmDeleteBody" = "Esto elimina la base de datos SQLite local y cierra la sesión. Las filas sincronizadas con iCloud en este dispositivo también se borrarán.";
+"settings.data.confirmDeleteButton" = "Eliminar";
+"settings.data.cancelButton" = "Cancelar";
+
+/* ── Encabezado del popover & medidores ── */
+"popover.header.title" = "USO DE CLAUDE";
+"popover.gauge.5h" = "5h";
+"popover.gauge.week" = "Semana";
+
+/* ── Subtítulos de reinicio ── */
+"popover.reset.resetsIn %lld %lld" = "se reinicia en %lldh %lldm";
+"popover.reset.resetsOn %@" = "se reinicia el %@";
+
+/* ── Etiquetas de error ── */
+"popover.error.lastPollFailed" = "Último sondeo fallido";
+"popover.error.authExpired" = "Sesión expirada. Clic derecho → Importar desde cURL… para actualizar.";
+"popover.error.cloudflare" = "Reto de Cloudflare. Las cookies necesitan actualizarse.";
+"popover.error.schemaDrift %@ %@" = "Cambio de esquema (%@). Vista previa de respuesta:\n%@";
+"popover.error.network %@ %@" = "Red: %@ %@";
+"popover.error.rateLimited %@" = "Límite de tasa alcanzado. Reintentar en: %@";
+
+/* ── Subtítulo de pronóstico ── */
+"popover.forecast.building" = "⏱ Construyendo pronóstico…";
+"popover.forecast.likelyFullAt %@" = "⏱ probablemente lleno a las %@";
+"popover.forecast.lowConfidence %@" = "⏱ ~%@ (baja confianza)";
+"popover.forecast.wontHitLimit" = "⏱ no alcanzará el límite en esta ventana";
+"popover.forecast.stable" = "⏱ estable";
+
+/* ── Pie de página ── */
+"popover.footer.neverPolled" = "Nunca sondeado";
+"popover.footer.lastPollSecondsAgo %lld" = "Último sondeo: hace %llds";
+"popover.footer.lastPollMinutesAgo %lld" = "Último sondeo: hace %lldm";
+"popover.footer.lastPollHoursAgo %lld" = "Último sondeo: hace %lldh";
+"popover.footer.refresh" = "Actualizar";

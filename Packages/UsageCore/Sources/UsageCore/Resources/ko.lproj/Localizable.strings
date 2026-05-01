@@ -1,0 +1,15 @@
+/* UsageCore — ko (한국어) — notification keys only */
+
+"notification.fiveHourForecast.title" = "5시간 한도에 근접 중";
+"notification.fiveHourForecast.body %@" = "현재 속도라면 %@에 한도에 도달할 것입니다.";
+"notification.fiveHourForecast.bodyNoTime" = "속도를 줄이지 않으면 5시간 한도에 도달할 수 있습니다.";
+"notification.fiveHourHit.title" = "5시간 한도에 도달했습니다";
+"notification.fiveHourHit.body" = "5시간 창이 소진되었습니다.";
+"notification.weekNinety.title" = "주간 사용량 90% 도달";
+"notification.weekNinety.body" = "주간 한도의 90%를 사용했습니다.";
+"notification.weekHundred.title" = "주간 한도에 도달했습니다";
+"notification.weekHundred.body %@" = "%@에 초기화됩니다.";
+"notification.authExpired.title" = "Claude.ai 로그인이 만료되었습니다";
+"notification.authExpired.body" = "탭하여 다시 로그인하세요.";
+"notification.scrapeBroken.title" = "소스 형식이 변경되었습니다";
+"notification.scrapeBroken.body" = "추적을 복원하려면 Claude Usage를 업데이트하세요.";

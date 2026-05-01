@@ -18,17 +18,18 @@ enum CURLImportWindowController {
                 // window. Without this, the window vanishes silently and
                 // the app looks like it exited (LSUIElement = no Dock icon).
                 let alert = NSAlert()
-                alert.messageText = "Imported"
-                alert.informativeText = """
-                Endpoint and cookies saved. Polling has started.
+                alert.messageText = String(localized: "cURL.success.title", defaultValue: "Imported")
+                alert.informativeText = String(localized: "cURL.success.body",
+                    defaultValue: """
+                    Endpoint and cookies saved. Polling has started.
 
-                Check the menu bar (top-right of your screen) for the ⌬ icon. Hover it for status:
-                • ⌬ N%   — polling succeeded
-                • ⌬ ⚠    — polling failed; tooltip shows why
-                • ⌬ —    — no data yet (first poll still running)
+                    Check the menu bar (top-right of your screen) for the ⌬ icon. Hover it for status:
+                    • ⌬ N%   — polling succeeded
+                    • ⌬ ⚠    — polling failed; tooltip shows why
+                    • ⌬ —    — no data yet (first poll still running)
 
-                Right-click the icon for Settings or to re-import.
-                """
+                    Right-click the icon for Settings or to re-import.
+                    """)
                 alert.alertStyle = .informational
                 alert.runModal()
                 window?.close()
@@ -36,7 +37,7 @@ enum CURLImportWindowController {
                 onSuccess()
             } catch {
                 let alert = NSAlert()
-                alert.messageText = "Import failed"
+                alert.messageText = String(localized: "cURL.failure.title", defaultValue: "Import failed")
                 alert.informativeText = "\(error)"
                 alert.alertStyle = .warning
                 alert.runModal()
@@ -44,7 +45,7 @@ enum CURLImportWindowController {
         }
         let host = NSHostingController(rootView: view)
         let w = NSWindow(contentViewController: host)
-        w.title = "Import from cURL"
+        w.title = String(localized: "cURL.window.title", defaultValue: "Import from cURL")
         w.styleMask = [.titled, .closable, .resizable]
         w.setContentSize(NSSize(width: 640, height: 540))
         w.center()
@@ -76,57 +77,48 @@ private struct CURLImportView: View {
     ///   3. A claude.ai request without a session cookie
     private func validate(_ imp: CURLImport) -> String? {
         guard let host = imp.url.host?.lowercased() else {
-            return "URL has no host — paste looks malformed."
+            return String(localized: "cURL.error.noURL",
+                defaultValue: "URL has no host — paste looks malformed.")
         }
         if !host.contains("claude.ai") {
-            return """
-            URL must point to claude.ai (yours points to \(host)).
-            Make sure you copied the cURL of the JSON usage request, \
-            not a telemetry / analytics request.
-            """
+            return String(localized: "cURL.error.wrongHost \(host)" as String.LocalizationValue)
         }
         if !imp.url.path.lowercased().contains("usage") {
-            return """
-            Wrong endpoint: \(imp.url.path)
-
-            We need the request to:
-              https://claude.ai/api/organizations/{your-org-uuid}/usage
-
-            Its response is JSON with fields like "five_hour" and \
-            "seven_day". Bootstrap, account, and analytics requests \
-            won't work.
-            """
+            return String(localized: "cURL.error.wrongPath \(imp.url.path)" as String.LocalizationValue)
         }
         if imp.cookies["sessionKey"] == nil {
-            return """
-            No 'sessionKey' cookie found. Make sure you copied the \
-            cURL while signed in to claude.ai (DevTools → Network).
-            """
+            return String(localized: "cURL.error.missingSessionKey",
+                defaultValue: """
+                No 'sessionKey' cookie found. Make sure you copied the \
+                cURL while signed in to claude.ai (DevTools → Network).
+                """)
         }
         return nil
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Import endpoint + cookies from a real browser")
+            Text("cURL.heading")
                 .font(.title3.bold())
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("How to grab the cURL:")
+                Text("cURL.howTo.heading")
                     .font(.subheadline.weight(.semibold))
-                Text("1. In Safari or Chrome, sign in to claude.ai.")
+                Text("cURL.howTo.step1")
                 // Use verbatim() so SwiftUI doesn't auto-link the URL —
                 // clicking it would open Chrome and hide this window.
-                Text(verbatim: "2. Open the URL  claude.ai/settings/usage  with DevTools open (Cmd-Option-I).")
-                Text("3. Click the Network tab, then reload the page.")
-                Text("4. Find the request whose URL looks like:")
+                Text(verbatim: String(localized: "cURL.howTo.urlExample",
+                    defaultValue: "2. Open the URL  claude.ai/settings/usage  with DevTools open (Cmd-Option-I)."))
+                Text("cURL.howTo.step3")
+                Text("cURL.howTo.step4")
                 Text(verbatim: "       https://claude.ai/api/organizations/{your-org-uuid}/usage")
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(.primary)
-                Text(verbatim: "   The response is small JSON with fields like \"five_hour\" and \"seven_day\".")
-                Text("5. Right-click that request → Copy → Copy as cURL.")
-                Text("6. Paste below and click Import.")
-                Text("(This window stays on top while you switch to the browser.)")
+                Text(verbatim: String(localized: "cURL.howTo.responseHint",
+                    defaultValue: "   The response is small JSON with fields like \"five_hour\" and \"seven_day\"."))
+                Text("cURL.howTo.step5")
+                Text("cURL.howTo.step6")
+                Text("cURL.howTo.windowFloats")
                     .font(.caption.italic())
                     .foregroundStyle(.tertiary)
                     .padding(.top, 2)
@@ -152,11 +144,11 @@ private struct CURLImportView: View {
 
             HStack {
                 Spacer()
-                Button("Cancel") {
+                Button("cURL.button.cancel") {
                     NSApp.keyWindow?.close()
                 }
                 .keyboardShortcut(.cancelAction)
-                Button("Import") {
+                Button("cURL.button.import") {
                     do {
                         let parsed = try CURLParser.parse(pasted)
                         if let problem = validate(parsed) {
