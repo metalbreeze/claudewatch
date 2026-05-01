@@ -48,7 +48,10 @@ struct PopoverRootView: View {
             }
 
             TimeframePicker(selection: $timeframe)
-            ChartView(snapshots: snapshots, forecast: controller.state.forecast, timeframe: timeframe)
+            ChartView(snapshots: snapshots,
+                      forecast: controller.state.forecast,
+                      timeframe: timeframe,
+                      nextReset5h: controller.state.latest?.resetTime5h)
             if timeframe == .oneHour || timeframe == .eightHour {
                 ForecastCaptionView(forecast: controller.state.forecast)
             }
