@@ -45,6 +45,12 @@
 "settings.tab.account" = "アカウント";
 "settings.tab.alerts" = "通知";
 "settings.tab.data" = "データ";
+"settings.tab.appearance" = "外観";
+"settings.appearance.theme" = "テーマ";
+"settings.appearance.themeAuto" = "自動";
+"settings.appearance.themeLight" = "ライト";
+"settings.appearance.themeDark" = "ダーク";
+"settings.appearance.themeNote" = "このテーマ設定はポップオーバーにのみ適用されます。メニューバーアイコンを次にクリックしたときに反映されます。";
 
 /* ── アカウントパネル ── */
 "settings.account.signedInAs %@" = "%@ でログイン中";

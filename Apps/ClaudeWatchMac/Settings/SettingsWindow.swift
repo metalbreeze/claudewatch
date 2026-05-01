@@ -14,6 +14,8 @@ enum SettingsWindowController {
         let view = TabView {
             AccountPane(ctx: ctx)
                 .tabItem { Label("settings.tab.account", systemImage: "person") }
+            AppearancePane(ctx: ctx)
+                .tabItem { Label("settings.tab.appearance", systemImage: "paintpalette") }
             AlertsPane(ctx: ctx)
                 .tabItem { Label("settings.tab.alerts", systemImage: "bell") }
             DataPane(ctx: ctx)

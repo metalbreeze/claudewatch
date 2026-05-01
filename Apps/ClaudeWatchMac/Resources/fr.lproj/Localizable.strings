@@ -45,6 +45,12 @@
 "settings.tab.account" = "Compte";
 "settings.tab.alerts" = "Alertes";
 "settings.tab.data" = "Données";
+"settings.tab.appearance" = "Apparence";
+"settings.appearance.theme" = "Thème";
+"settings.appearance.themeAuto" = "Automatique";
+"settings.appearance.themeLight" = "Clair";
+"settings.appearance.themeDark" = "Sombre";
+"settings.appearance.themeNote" = "Le thème ne s'applique qu'au menu déroulant. Effectif au prochain clic sur l'icône de la barre des menus.";
 
 /* ── Panneau de compte ── */
 "settings.account.signedInAs %@" = "Connecté en tant que %@";

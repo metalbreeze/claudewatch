@@ -45,6 +45,12 @@
 "settings.tab.account" = "Account";
 "settings.tab.alerts" = "Alerts";
 "settings.tab.data" = "Data";
+"settings.tab.appearance" = "Appearance";
+"settings.appearance.theme" = "Theme";
+"settings.appearance.themeAuto" = "Automatic";
+"settings.appearance.themeLight" = "Light";
+"settings.appearance.themeDark" = "Dark";
+"settings.appearance.themeNote" = "Theme override applies to the popover. Takes effect next time you click the menu bar icon.";
 
 /* ── Account pane ── */
 "settings.account.signedInAs %@" = "Signed in as %@";

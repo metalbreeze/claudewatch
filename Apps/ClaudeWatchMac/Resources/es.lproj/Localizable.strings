@@ -45,6 +45,12 @@
 "settings.tab.account" = "Cuenta";
 "settings.tab.alerts" = "Alertas";
 "settings.tab.data" = "Datos";
+"settings.tab.appearance" = "Apariencia";
+"settings.appearance.theme" = "Tema";
+"settings.appearance.themeAuto" = "Automático";
+"settings.appearance.themeLight" = "Claro";
+"settings.appearance.themeDark" = "Oscuro";
+"settings.appearance.themeNote" = "El tema seleccionado se aplica al popover. Tendrá efecto la próxima vez que pulses el icono de la barra de menús.";
 
 /* ── Panel de cuenta ── */
 "settings.account.signedInAs %@" = "Sesión iniciada como %@";

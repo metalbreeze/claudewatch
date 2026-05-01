@@ -45,6 +45,12 @@
 "settings.tab.account" = "Konto";
 "settings.tab.alerts" = "Benachrichtigungen";
 "settings.tab.data" = "Daten";
+"settings.tab.appearance" = "Darstellung";
+"settings.appearance.theme" = "Erscheinungsbild";
+"settings.appearance.themeAuto" = "Automatisch";
+"settings.appearance.themeLight" = "Hell";
+"settings.appearance.themeDark" = "Dunkel";
+"settings.appearance.themeNote" = "Die Auswahl gilt für das Popover. Wird beim nächsten Klick auf das Menüleisten-Symbol wirksam.";
 
 /* ── Konto-Bereich ── */
 "settings.account.signedInAs %@" = "Angemeldet als %@";

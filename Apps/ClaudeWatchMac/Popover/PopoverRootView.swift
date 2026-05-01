@@ -6,6 +6,10 @@ struct PopoverRootView: View {
     @ObservedObject var controller: UsageController
     @State private var timeframe: Timeframe = .oneHour
     @State private var snapshots: [UsageSnapshot] = []
+    /// `nil` follows the system appearance; `.light` / `.dark` overrides it.
+    /// Sourced from SettingsRepository.theme by PopoverController and
+    /// passed in fresh on every popover open.
+    let preferredScheme: ColorScheme?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -73,6 +77,15 @@ struct PopoverRootView: View {
         }
         .padding(12)
         .frame(width: 340)
+        // Force an opaque background so the popover stops being
+        // translucent over the desktop. Color(.windowBackgroundColor)
+        // is a dynamic system color: dark gray in dark mode, near-white
+        // in light mode — so the gauges/text/chart stay legible against
+        // whatever the user has behind their menu bar.
+        .background(Color(.windowBackgroundColor))
+        // Override system appearance per the Settings → Appearance pick.
+        // nil = follow system; .light / .dark = force.
+        .preferredColorScheme(preferredScheme)
         .onAppear { refreshSnapshots() }
         .onChange(of: timeframe) { _ in refreshSnapshots() }
         .onChange(of: controller.state.lastPollAt) { _ in refreshSnapshots() }

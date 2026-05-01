@@ -45,6 +45,12 @@
 "settings.tab.account" = "계정";
 "settings.tab.alerts" = "알림";
 "settings.tab.data" = "데이터";
+"settings.tab.appearance" = "외관";
+"settings.appearance.theme" = "테마";
+"settings.appearance.themeAuto" = "자동";
+"settings.appearance.themeLight" = "라이트";
+"settings.appearance.themeDark" = "다크";
+"settings.appearance.themeNote" = "테마 재정의는 팝오버에만 적용됩니다. 다음에 메뉴 막대 아이콘을 클릭할 때 반영됩니다.";
 
 /* ── 계정 패널 ── */
 "settings.account.signedInAs %@" = "%@(으)로 로그인됨";

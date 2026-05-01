@@ -34,7 +34,21 @@ final class PopoverController {
                 rootView: Text("Controller not yet ready").padding())
             return
         }
+        // Read the theme override fresh on every show, so changing the
+        // Settings → Appearance picker takes effect on the next popover
+        // open without needing app relaunch.
+        // Note: `try? ctx.settings.get(.theme)` returns String?? (try?
+        // wrapping String?). flatMap squashes that to String?, then ??
+        // gives a concrete String for the switch.
+        let themeStr = (try? ctx.settings.get(.theme)).flatMap { $0 } ?? "auto"
+        let scheme: ColorScheme? = {
+            switch themeStr {
+            case "light": return .light
+            case "dark":  return .dark
+            default:      return nil  // follow system
+            }
+        }()
         popover.contentViewController = NSHostingController(
-            rootView: PopoverRootView(controller: controller))
+            rootView: PopoverRootView(controller: controller, preferredScheme: scheme))
     }
 }

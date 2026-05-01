@@ -45,6 +45,12 @@
 "settings.tab.account" = "账户";
 "settings.tab.alerts" = "通知";
 "settings.tab.data" = "数据";
+"settings.tab.appearance" = "外观";
+"settings.appearance.theme" = "主题";
+"settings.appearance.themeAuto" = "自动";
+"settings.appearance.themeLight" = "浅色";
+"settings.appearance.themeDark" = "深色";
+"settings.appearance.themeNote" = "主题覆盖只作用于弹出窗口。下次点击菜单栏图标时生效。";
 
 /* ── 账户面板 ── */
 "settings.account.signedInAs %@" = "已登录：%@";

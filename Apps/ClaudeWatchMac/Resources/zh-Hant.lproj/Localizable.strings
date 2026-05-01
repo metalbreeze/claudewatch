@@ -45,6 +45,12 @@
 "settings.tab.account" = "帳戶";
 "settings.tab.alerts" = "通知";
 "settings.tab.data" = "資料";
+"settings.tab.appearance" = "外觀";
+"settings.appearance.theme" = "主題";
+"settings.appearance.themeAuto" = "自動";
+"settings.appearance.themeLight" = "淺色";
+"settings.appearance.themeDark" = "深色";
+"settings.appearance.themeNote" = "主題覆寫只作用於彈出視窗。下次點擊選單列圖示時生效。";
 
 /* ── 帳戶面板 ── */
 "settings.account.signedInAs %@" = "已登入：%@";
