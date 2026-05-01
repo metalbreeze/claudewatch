@@ -27,3 +27,5 @@ Apps/*/notes.swift
 Apps/*/scratch.swift
 Apps/*/*.notes
 Apps/*/_scratch/*
+dist/
+dmg-staging/
