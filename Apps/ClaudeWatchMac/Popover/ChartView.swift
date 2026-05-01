@@ -42,10 +42,16 @@ struct ChartView: View {
                     .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [3, 3]))
             }
 
+            // The `series:` parameter is critical: without it, Swift Charts
+            // groups same-axis LineMarks into a single visual series and
+            // collapses per-mark .foregroundStyle modifiers to a shared
+            // color (which is why forecast was rendering green like
+            // actual usage).
             ForEach(visible, id: \.timestamp) { s in
                 LineMark(
                     x: .value("t", s.timestamp),
-                    y: .value("pct", s.fraction5h * 100))
+                    y: .value("pct", s.fraction5h * 100),
+                    series: .value("kind", "actual"))
                 .foregroundStyle(.green)
             }
 
@@ -53,12 +59,14 @@ struct ChartView: View {
             // ForecastCaptionView. 24h / 1w views are about historical
             // pattern, not short-term projection — adding a forecast
             // line there clutters more than it informs.
-            if showsForecast {
+            if showsForecast, let f = forecast {
+                let tone = forecastTone(f)
                 ForEach(Array(visibleForecast.enumerated()), id: \.offset) { _, p in
                     LineMark(
                         x: .value("t", p.time),
-                        y: .value("pct", p.projectedFraction * 100))
-                    .foregroundStyle(.orange)
+                        y: .value("pct", p.projectedFraction * 100),
+                        series: .value("kind", "forecast"))
+                    .foregroundStyle(tone.color)
                     .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [3, 2]))
                 }
             }
@@ -116,5 +124,28 @@ struct ChartView: View {
         case .oneWeek:
             return .dateTime.month(.abbreviated).day()
         }
+    }
+
+    /// Three-tier color hierarchy for the forecast line:
+    ///   • gray         = informational (no projected hit, no action needed)
+    ///   • lightOrange  = warning, low trust (hit projected but R² < 0.5)
+    ///   • orange       = warning, trustworthy (hit projected, R² ≥ 0.5)
+    private enum ForecastTone {
+        case gray, lightOrange, orange
+
+        var color: Color {
+            switch self {
+            case .gray:        return Color.gray.opacity(0.55)
+            case .lightOrange: return Color.orange.opacity(0.45)
+            case .orange:      return Color.orange
+            }
+        }
+    }
+
+    private func forecastTone(_ f: ForecastResult) -> ForecastTone {
+        if f.projectedHitTime != nil {
+            return f.isLowConfidence ? .lightOrange : .orange
+        }
+        return .gray
     }
 }
