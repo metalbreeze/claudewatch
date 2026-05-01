@@ -2,6 +2,22 @@ import SwiftUI
 import Charts
 import UsageCore
 
+/// Editorial color palette for the chart. Each metric has a fixed identity
+/// color across all timeframes:
+///   • orange = 5h-window utilization (warm — short, fast cycle)
+///   • teal   = 7-day weekly utilization (cool — slow, accumulating cycle)
+///
+/// Forecast (5h-window-based) is always gray-dashed; confidence is
+/// encoded by the dash gap rather than color, so a high-confidence
+/// projection looks "near-solid" and a stable/non-actionable one looks
+/// "barely-there dotted."
+enum ChartPalette {
+    static let actual5h = Color.orange
+    static let actualWeek = Color.teal
+    static let forecast = Color.gray.opacity(0.7)
+    static let resetBoundary = Color.indigo.opacity(0.6)
+}
+
 struct ChartView: View {
     let snapshots: [UsageSnapshot]
     let forecast: ForecastResult?
@@ -18,11 +34,14 @@ struct ChartView: View {
     var body: some View {
         let now = Date()
         let cutoff = now.addingTimeInterval(-timeframe.seconds)
+        // 1w view shows BOTH lines (week primary, 5h supporting context).
+        // Other timeframes show only the 5h line — plotting weekly
+        // utilization across an hour would barely move.
+        let showsWeekLine = (timeframe == .oneWeek)
         // Forecast is short-term and 5h-window-based — meaningful on 1h /
         // 8h / 24h. We don't have a separate "weekly forecast", so the 1w
-        // view (which tracks the 7-day metric) doesn't draw it.
-        let useWeeklyMetric = (timeframe == .oneWeek)
-        let showsForecast = !useWeeklyMetric
+        // view doesn't draw it.
+        let showsForecast = !showsWeekLine
 
         // Cap how far the chart extends past now. Without this, an active
         // forecast that runs all the way to resetTime5h (potentially ~5h
@@ -38,7 +57,7 @@ struct ChartView: View {
 
         // Reset markers: on 1h/8h/24h, every 5h boundary inside the
         // window. On 1w, just the upcoming weekly reset (a single line).
-        let resetMarks: [Date] = useWeeklyMetric
+        let resetMarks: [Date] = showsWeekLine
             ? weeklyResetMarks(in: cutoff...xMax)
             : fiveHourResetMarks(in: cutoff...xMax)
 
@@ -47,35 +66,51 @@ struct ChartView: View {
             // visually distinct from the gray axis gridlines.
             ForEach(Array(resetMarks.enumerated()), id: \.offset) { _, t in
                 RuleMark(x: .value("reset", t))
-                    .foregroundStyle(Color.indigo.opacity(0.6))
+                    .foregroundStyle(ChartPalette.resetBoundary)
                     .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [3, 3]))
             }
 
+            // 5h actual usage — orange, present on every timeframe.
             // The `series:` parameter is critical: without it, Swift Charts
             // groups same-axis LineMarks into a single visual series and
             // collapses per-mark .foregroundStyle modifiers to a shared
-            // color (which is why forecast was rendering green like
-            // actual usage).
+            // color.
             ForEach(visible, id: \.timestamp) { s in
                 LineMark(
                     x: .value("t", s.timestamp),
-                    y: .value("pct", (useWeeklyMetric ? s.fractionWeek : s.fraction5h) * 100),
-                    series: .value("kind", "actual"))
-                .foregroundStyle(.green)
+                    y: .value("pct", s.fraction5h * 100),
+                    series: .value("kind", "actual5h"))
+                .foregroundStyle(ChartPalette.actual5h)
+                .lineStyle(StrokeStyle(lineWidth: 1.5))
             }
 
-            // Forecast line: only on 5h-window views. The forecaster is
-            // computed from used_5h, so plotting it on a weekly view
-            // would mix metrics.
+            // Weekly actual usage — teal, only on 1w. Sits on the same
+            // 0–100% axis as the 5h line, so the two lines stack
+            // naturally: weekly is the slow climb, 5h is the saw-tooth
+            // that dives on every reset.
+            if showsWeekLine {
+                ForEach(visible, id: \.timestamp) { s in
+                    LineMark(
+                        x: .value("t", s.timestamp),
+                        y: .value("pct", s.fractionWeek * 100),
+                        series: .value("kind", "actualWeek"))
+                    .foregroundStyle(ChartPalette.actualWeek)
+                    .lineStyle(StrokeStyle(lineWidth: 1.5))
+                }
+            }
+
+            // Forecast — gray, dashed; dash gap encodes confidence.
+            // Color stays constant so it never competes with the
+            // amber/teal of actuals.
             if showsForecast, let f = forecast {
-                let tone = forecastTone(f)
+                let dash = forecastDash(f)
                 ForEach(Array(visibleForecast.enumerated()), id: \.offset) { _, p in
                     LineMark(
                         x: .value("t", p.time),
                         y: .value("pct", p.projectedFraction * 100),
                         series: .value("kind", "forecast"))
-                    .foregroundStyle(tone.color)
-                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [3, 2]))
+                    .foregroundStyle(ChartPalette.forecast)
+                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: dash))
                 }
             }
         }
@@ -138,26 +173,19 @@ struct ChartView: View {
         }
     }
 
-    /// Three-tier color hierarchy for the forecast line:
-    ///   • gray         = informational (no projected hit, no action needed)
-    ///   • lightOrange  = warning, low trust (hit projected but R² < 0.5)
-    ///   • orange       = warning, trustworthy (hit projected, R² ≥ 0.5)
-    private enum ForecastTone {
-        case gray, lightOrange, orange
-
-        var color: Color {
-            switch self {
-            case .gray:        return Color.gray.opacity(0.55)
-            case .lightOrange: return Color.orange.opacity(0.45)
-            case .orange:      return Color.orange
-            }
-        }
-    }
-
-    private func forecastTone(_ f: ForecastResult) -> ForecastTone {
+    /// Map forecast confidence to a dash pattern. The visual axis is
+    /// "solidity" — tighter dashes read as "more credible projection,"
+    /// sparser dashes read as "less actionable / lower confidence."
+    ///
+    /// Same backend distinction as before, just encoded in stroke style
+    /// instead of color:
+    ///   • [5, 2] near-solid       = projected hit, R² ≥ 0.5
+    ///   • [3, 4] moderate gap     = projected hit, R² < 0.5 (low conf)
+    ///   • [2, 6] sparse dotted    = no projected hit (stable / won't reach)
+    private func forecastDash(_ f: ForecastResult) -> [CGFloat] {
         if f.projectedHitTime != nil {
-            return f.isLowConfidence ? .lightOrange : .orange
+            return f.isLowConfidence ? [3, 4] : [5, 2]
         }
-        return .gray
+        return [2, 6]
     }
 }

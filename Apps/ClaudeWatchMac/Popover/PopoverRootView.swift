@@ -39,12 +39,19 @@ struct PopoverRootView: View {
             }
 
             HStack(spacing: 10) {
+                // Label tints mirror the chart line colors below so the
+                // gauge cards double as an implicit legend: orange "5H"
+                // = orange line, teal "WEEK" = teal line (only drawn on
+                // 1w, but the label color still matches if user clicks
+                // 1w).
                 GaugeCardView(label: "5h",
                     percent: controller.state.latest?.fraction5h ?? 0,
-                    resetCaption: resetCaption(controller.state.latest?.resetTime5h))
+                    resetCaption: resetCaption(controller.state.latest?.resetTime5h),
+                    labelTint: ChartPalette.actual5h)
                 GaugeCardView(label: "Week",
                     percent: controller.state.latest?.fractionWeek ?? 0,
-                    resetCaption: weeklyResetCaption(controller.state.latest?.resetTimeWeek))
+                    resetCaption: weeklyResetCaption(controller.state.latest?.resetTimeWeek),
+                    labelTint: ChartPalette.actualWeek)
             }
 
             TimeframePicker(selection: $timeframe)

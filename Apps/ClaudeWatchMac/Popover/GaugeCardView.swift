@@ -4,12 +4,16 @@ struct GaugeCardView: View {
     let label: String
     let percent: Double          // 0..1
     let resetCaption: String
+    /// Optional accent color for the small label ("5H" / "WEEK"). When
+    /// set, this becomes an implicit chart legend — the user sees the
+    /// label tint and matches it to the line color in the chart below.
+    var labelTint: Color? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(label.uppercased())
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(labelStyle)
             Text("\(Int(percent * 100))%")
                 .font(.system(size: 28, weight: .semibold, design: .rounded))
             // Pure-SwiftUI fill bar. ProgressView on macOS uses
@@ -32,6 +36,13 @@ struct GaugeCardView: View {
         if p >= 0.9 { return .red }
         if p >= 0.75 { return .orange }
         return .green
+    }
+
+    /// `foregroundStyle` accepts any ShapeStyle; we wrap whichever variant
+    /// applies into AnyShapeStyle so the ternary type-checks cleanly.
+    private var labelStyle: AnyShapeStyle {
+        if let tint = labelTint { return AnyShapeStyle(tint) }
+        return AnyShapeStyle(HierarchicalShapeStyle.secondary)
     }
 }
 
