@@ -1,6 +1,6 @@
 name: ClaudeWatch
 options:
-  bundleIdPrefix: com.claudewatch
+  bundleIdPrefix: studio.cybertron.claudewatch
   deploymentTarget:
     macOS: "13.0"
     iOS: "16.0"
@@ -64,10 +64,10 @@ targets:
         # com.apple.developer.icloud-services:
         #   - CloudKit
         # com.apple.developer.icloud-container-identifiers:
-        #   - iCloud.com.claudewatch.shared
+        #   - iCloud.studio.cybertron.claudewatch.shared
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.claudewatch.mac
+        PRODUCT_BUNDLE_IDENTIFIER: studio.cybertron.claudewatch.mac
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: NO
@@ -105,15 +105,15 @@ targets:
       properties:
         # App Group shared with the Widget extension (Task 42).
         com.apple.security.application-groups:
-          - group.com.claudewatch.shared
+          - group.studio.cybertron.claudewatch.shared
         # Future: enable when iCloud is wired (Task 52)
         # com.apple.developer.icloud-services:
         #   - CloudKit
         # com.apple.developer.icloud-container-identifiers:
-        #   - iCloud.com.claudewatch.shared
+        #   - iCloud.studio.cybertron.claudewatch.shared
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.claudewatch.ios
+        PRODUCT_BUNDLE_IDENTIFIER: studio.cybertron.claudewatch.ios
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: NO

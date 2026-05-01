@@ -7,7 +7,7 @@ public protocol KeychainStoring {
 }
 
 public enum DeviceID {
-    public static let service = "com.claudewatch.deviceid"
+    public static let service = "studio.cybertron.claudewatch.deviceid"
     public static let account = "device-uuid"
 
     public static func getOrCreate(in store: KeychainStoring) throws -> String {
