@@ -51,8 +51,13 @@ struct PopoverRootView: View {
             ChartView(snapshots: snapshots,
                       forecast: controller.state.forecast,
                       timeframe: timeframe,
-                      nextReset5h: controller.state.latest?.resetTime5h)
-            if timeframe == .oneHour || timeframe == .eightHour {
+                      nextReset5h: controller.state.latest?.resetTime5h,
+                      nextResetWeek: controller.state.latest?.resetTimeWeek)
+            // Show forecast caption on every timeframe except 1w. The
+            // forecast is short-term and 5h-based; on the 7-day view we
+            // plot fractionWeek instead, so the 5h-forecast caption
+            // would mismatch the chart.
+            if timeframe != .oneWeek {
                 ForecastCaptionView(forecast: controller.state.forecast)
             }
             FooterView(lastPollAt: controller.state.lastPollAt, onRefresh: {
