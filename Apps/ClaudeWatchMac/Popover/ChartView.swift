@@ -4,15 +4,18 @@ import UsageCore
 
 /// Editorial color palette for the chart. Each metric has a fixed identity
 /// color across all timeframes:
-///   • orange = 5h-window utilization (warm — short, fast cycle)
-///   • teal   = 7-day weekly utilization (cool — slow, accumulating cycle)
+///   • green = 5h-window utilization (the "default neutral" metric color
+///             in macOS conventions; doesn't claim a warning slot the
+///             way orange or red would)
+///   • teal  = 7-day weekly utilization (cool, slow-cycle counterpart;
+///             pairs with green inside a related green-blue hue family)
 ///
 /// Forecast (5h-window-based) is always gray-dashed; confidence is
 /// encoded by the dash gap rather than color, so a high-confidence
 /// projection looks "near-solid" and a stable/non-actionable one looks
 /// "barely-there dotted."
 enum ChartPalette {
-    static let actual5h = Color.orange
+    static let actual5h = Color.green
     static let actualWeek = Color.teal
     static let forecast = Color.gray.opacity(0.7)
     static let resetBoundary = Color.indigo.opacity(0.6)
