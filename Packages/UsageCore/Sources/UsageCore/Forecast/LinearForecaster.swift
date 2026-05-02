@@ -33,22 +33,48 @@ public struct LinearForecaster {
         }
         let r2 = ssTot > 0 ? max(0, 1 - ssRes / ssTot) : 0
 
+        // Anchor the forecast at the LAST observed snapshot rather than
+        // at `now`. Two reasons:
+        //
+        //   1. Continuity: callers (e.g. ChartView) draw the forecast as
+        //      a separate Swift Charts series alongside the actual-data
+        //      line. If the forecast started at `now` with value
+        //      `intercept` (the regression's smoothed prediction), there
+        //      was a visible gap between the actual line's endpoint
+        //      (last.timestamp, last.fraction5h) and the forecast's
+        //      start. Anchoring at the last snapshot makes them touch.
+        //
+        //   2. Honesty: the slope captures the recent rate, but the
+        //      regression's intercept can drift slightly from the actual
+        //      most-recent measurement. Treating the last data point as
+        //      ground truth and projecting forward from THERE matches
+        //      what users expect from "predicted line".
+        let lastT = last.timestamp
+        let lastTokens = Double(last.used5h)
+
+        // Hit time: same math, just relative to lastT instead of now.
         var hit: Date? = nil
         if slope > 0.0001 {
-            let secsUntil = (ceiling - intercept) / slope
-            if secsUntil > 0 && secsUntil < (last.resetTime5h.timeIntervalSince(now) + 1) {
-                hit = now.addingTimeInterval(secsUntil)
+            let secsUntil = (ceiling - lastTokens) / slope
+            if secsUntil > 0 && secsUntil < (last.resetTime5h.timeIntervalSince(lastT) + 1) {
+                hit = lastT.addingTimeInterval(secsUntil)
             }
         }
 
-        // Build line points from now forward at 60s steps until hit (or window end).
         var line: [ForecastPoint] = []
         let endT = hit ?? last.resetTime5h
-        var t = now
+
+        // First point: anchor exactly at the last snapshot.
+        line.append(.init(time: lastT, projectedFraction: min(1, lastTokens / ceiling)))
+
+        // Subsequent points: project forward in 60s steps using the
+        // regression slope (tokens per second) starting from the last
+        // measurement.
+        var t = lastT.addingTimeInterval(60)
         while t < endT {
-            let dx = t.timeIntervalSince(now)
-            let pred = slope * dx + intercept
-            line.append(.init(time: t, projectedFraction: min(1, pred / ceiling)))
+            let dt = t.timeIntervalSince(lastT)
+            let pred = lastTokens + slope * dt
+            line.append(.init(time: t, projectedFraction: min(1, max(0, pred / ceiling))))
             t.addTimeInterval(60)
         }
         return ForecastResult(slope: slope, intercept: intercept,
