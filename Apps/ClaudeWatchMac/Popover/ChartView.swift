@@ -46,15 +46,31 @@ struct ChartView: View {
         // view doesn't draw it.
         let showsForecast = !showsWeekLine
 
-        // Cap how far the chart extends past now. Without this, an active
-        // forecast that runs all the way to resetTime5h (potentially ~5h
-        // away) would balloon the chart well past its labeled timeframe —
-        // a 1h view would actually span 6h. Limiting future to 1/4 of the
-        // timeframe keeps the x-axis label honest.
-        let maxFuture = timeframe.seconds * 0.25
-        let forecastEnd = forecast?.line.last?.time ?? now
-        let cappedEnd = min(forecastEnd, now.addingTimeInterval(maxFuture))
-        let xMax = showsForecast ? max(now, cappedEnd) : now
+        // Compute the chart's right-edge timestamp. Two contributors:
+        //
+        //   1. Forecast cap — keeps the forecast line from blowing the
+        //      chart out past its labeled timeframe (1/4 of timeframe).
+        //   2. Reset marker visibility — the user wants to SEE the
+        //      upcoming reset (5h or weekly) on every chart, even if
+        //      it's beyond the forecast cap. Extend xMax to include
+        //      it, but cap the extension at one full timeframe forward
+        //      so the chart never grows more than ~2× the labeled span.
+        //
+        // ViewBuilder forbids mutable vars / non-view ifs at body's top
+        // level, so we compute via an immediately-invoked closure.
+        let xMax: Date = {
+            let maxFutureForecast = timeframe.seconds * 0.25
+            let forecastEnd = forecast?.line.last?.time ?? now
+            let cappedForecastEnd = min(forecastEnd, now.addingTimeInterval(maxFutureForecast))
+            var m = showsForecast ? max(now, cappedForecastEnd) : now
+
+            let extensionCap = now.addingTimeInterval(timeframe.seconds)
+            let upcomingReset: Date? = showsWeekLine ? nextResetWeek : nextReset5h
+            if let r = upcomingReset, r > m {
+                m = min(r, extensionCap)
+            }
+            return m
+        }()
         let visible = snapshots.filter { $0.timestamp >= cutoff }
         let visibleForecast = forecast?.line.filter { $0.time <= xMax } ?? []
 
