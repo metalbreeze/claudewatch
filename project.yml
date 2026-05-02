@@ -52,8 +52,8 @@ targets:
       path: Apps/ClaudeWatchMac/Info.plist
       properties:
         CFBundleDisplayName: Claude Watch
-        CFBundleShortVersionString: "0.1.6"
-        CFBundleVersion: "7"
+        CFBundleShortVersionString: "0.1.7"
+        CFBundleVersion: "8"
         # The whole point of this app — runs in menu bar, no Dock icon.
         LSUIElement: YES
         NSHumanReadableCopyright: ""
@@ -87,8 +87,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: studio.cybertron.claudewatch.mac
-        MARKETING_VERSION: "0.1.6"
-        CURRENT_PROJECT_VERSION: "7"
+        MARKETING_VERSION: "0.1.7"
+        CURRENT_PROJECT_VERSION: "8"
         GENERATE_INFOPLIST_FILE: NO
         ENABLE_HARDENED_RUNTIME: YES
         SDKROOT: macosx

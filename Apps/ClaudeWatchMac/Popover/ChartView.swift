@@ -90,13 +90,12 @@ struct ChartView: View {
         let line5h = augmented5hLine(visible)
 
         Chart {
-            // Reset boundaries — indigo dashed verticals so they're
-            // visually distinct from the gray axis gridlines.
-            ForEach(Array(resetMarks.enumerated()), id: \.offset) { _, t in
-                RuleMark(x: .value("reset", t))
-                    .foregroundStyle(ChartPalette.resetBoundary)
-                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [3, 3]))
-            }
+            // Data lines first, reset markers ON TOP — Swift Charts
+            // paints in declaration order, so the indigo RuleMarks must
+            // come AFTER the green LineMark. Otherwise a vertical
+            // step-down (the synthetic 0%-drop we draw at every reset)
+            // would render on top of the indigo line at the same x and
+            // hide it.
 
             // 5h actual usage. The `series:` parameter is critical:
             // without it, Swift Charts groups same-axis LineMarks into
@@ -128,7 +127,7 @@ struct ChartView: View {
 
             // Forecast — gray, dashed; dash gap encodes confidence.
             // Color stays constant so it never competes with the
-            // amber/teal of actuals.
+            // green/teal of actuals.
             if showsForecast, let f = forecast {
                 let dash = forecastDash(f)
                 ForEach(Array(visibleForecast.enumerated()), id: \.offset) { _, p in
@@ -139,6 +138,16 @@ struct ChartView: View {
                     .foregroundStyle(ChartPalette.forecast)
                     .lineStyle(StrokeStyle(lineWidth: 1.5, dash: dash))
                 }
+            }
+
+            // Reset boundaries — drawn LAST so they sit on top of the
+            // green step-down vertices that would otherwise cover them.
+            // Indigo dashed verticals; visually distinct from the gray
+            // axis gridlines.
+            ForEach(Array(resetMarks.enumerated()), id: \.offset) { _, t in
+                RuleMark(x: .value("reset", t))
+                    .foregroundStyle(ChartPalette.resetBoundary)
+                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [3, 3]))
             }
         }
         .chartYScale(domain: 0...100)
@@ -171,21 +180,30 @@ struct ChartView: View {
         let value: Double          // percent, 0–100
     }
 
-    /// 5h-window resets we can prove from snapshot history: any time
-    /// `used_5h` decreases between consecutive snapshots, a reset must
-    /// have happened in the gap (used_5h is monotonically non-decreasing
-    /// within a single window). Combined with the upcoming reset from
-    /// the API, these are the only indigo guides we draw.
+    /// 5h-window resets we can prove from snapshot history. Two signals
+    /// — both fire as a "reset event happened in the gap":
     ///
-    /// Iterating with `zip(snapshots, snapshots.dropFirst())` instead of
-    /// `1..<count` because the latter trap-crashes when `snapshots` is
-    /// empty (Range requires lowerBound ≤ upperBound, and `1..<0` is
-    /// invalid). zip is empty-safe by construction.
+    ///   • `used_5h` decreased between consecutive snapshots. Catches
+    ///     the common case (window expired, used_5h went from a high
+    ///     value to 0).
+    ///   • `resetTime5h` jumped forward by more than an hour between
+    ///     consecutive snapshots. Catches the post-idle case (user was
+    ///     idle for >5 h, the old window expired silently with
+    ///     used_5h staying at 0 the whole time, then a new message
+    ///     started a new window — used_5h goes 0 → 1 % which doesn't
+    ///     trigger the "decreased" signal, but resetTime5h jumps
+    ///     forward by ~5 h).
+    ///
+    /// Combined with the upcoming reset from the API, these are the
+    /// only indigo guides we draw. zip(...,dropFirst()) is empty-safe;
+    /// `1..<snapshots.count` would trap on empty.
     private func fiveHourResetMarks(in range: ClosedRange<Date>,
                                     snapshots: [UsageSnapshot]) -> [Date] {
         var marks: [Date] = []
         for (prev, curr) in zip(snapshots, snapshots.dropFirst()) {
-            if curr.used5h < prev.used5h {
+            let usedDecreased = curr.used5h < prev.used5h
+            let resetTimeJumped = curr.resetTime5h.timeIntervalSince(prev.resetTime5h) > 3600
+            if usedDecreased || resetTimeJumped {
                 let mid = midpoint(prev.timestamp, curr.timestamp)
                 if range.contains(mid) { marks.append(mid) }
             }
