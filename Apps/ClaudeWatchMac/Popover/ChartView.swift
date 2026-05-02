@@ -58,11 +58,20 @@ struct ChartView: View {
         let visible = snapshots.filter { $0.timestamp >= cutoff }
         let visibleForecast = forecast?.line.filter { $0.time <= xMax } ?? []
 
-        // Reset markers: on 1h/8h/24h, every 5h boundary inside the
-        // window. On 1w, just the upcoming weekly reset (a single line).
+        // Reset markers:
+        //   • 1h/8h/24h → indigo lines at REAL past resets (detected from
+        //     drops in used_5h between consecutive snapshots) plus the
+        //     upcoming reset from the API.
+        //   • 1w → just the upcoming weekly reset (the saw-tooth pattern
+        //     of the 5h line itself shows where rolling resets happened,
+        //     so dotting the chart with ~33 markers is just noise).
         let resetMarks: [Date] = showsWeekLine
             ? weeklyResetMarks(in: cutoff...xMax)
-            : fiveHourResetMarks(in: cutoff...xMax)
+            : fiveHourResetMarks(in: cutoff...xMax, snapshots: visible)
+        // Augment the raw 5h snapshot stream with synthetic step-down
+        // points at every detected reset so the line visibly drops to
+        // 0% at the boundary instead of slanting smoothly across it.
+        let line5h = augmented5hLine(visible)
 
         Chart {
             // Reset boundaries — indigo dashed verticals so they're
@@ -73,15 +82,14 @@ struct ChartView: View {
                     .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [3, 3]))
             }
 
-            // 5h actual usage — orange, present on every timeframe.
-            // The `series:` parameter is critical: without it, Swift Charts
-            // groups same-axis LineMarks into a single visual series and
-            // collapses per-mark .foregroundStyle modifiers to a shared
-            // color.
-            ForEach(visible, id: \.timestamp) { s in
+            // 5h actual usage. The `series:` parameter is critical:
+            // without it, Swift Charts groups same-axis LineMarks into
+            // one visual series and collapses per-mark .foregroundStyle
+            // modifiers to a shared color.
+            ForEach(Array(line5h.enumerated()), id: \.offset) { _, p in
                 LineMark(
-                    x: .value("t", s.timestamp),
-                    y: .value("pct", s.fraction5h * 100),
+                    x: .value("t", p.time),
+                    y: .value("pct", p.value),
                     series: .value("kind", "actual5h"))
                 .foregroundStyle(ChartPalette.actual5h)
                 .lineStyle(StrokeStyle(lineWidth: 1.5))
@@ -139,29 +147,72 @@ struct ChartView: View {
         .frame(height: 90)
     }
 
-    /// 5h-reset boundaries that fall inside the visible x-axis range,
-    /// walking backward and forward from `nextReset5h` in 5-hour steps.
-    private func fiveHourResetMarks(in range: ClosedRange<Date>) -> [Date] {
-        guard let next = nextReset5h else { return [] }
-        var result: [Date] = []
-        var t = next
-        while t >= range.lowerBound {
-            if t <= range.upperBound { result.append(t) }
-            t = t.addingTimeInterval(-5 * 3600)
+    /// One point on the 5h line. The chart uses these to draw the actual
+    /// usage curve — including synthetic step-down points at detected
+    /// reset events so the line visibly drops to 0% at each boundary.
+    private struct LinePoint {
+        let time: Date
+        let value: Double          // percent, 0–100
+    }
+
+    /// 5h-window resets we can prove from snapshot history: any time
+    /// `used_5h` decreases between consecutive snapshots, a reset must
+    /// have happened in the gap (used_5h is monotonically non-decreasing
+    /// within a single window). Combined with the upcoming reset from
+    /// the API, these are the only indigo guides we draw.
+    private func fiveHourResetMarks(in range: ClosedRange<Date>,
+                                    snapshots: [UsageSnapshot]) -> [Date] {
+        var marks: [Date] = []
+        for i in 1..<snapshots.count {
+            if snapshots[i].used5h < snapshots[i-1].used5h {
+                let mid = midpoint(snapshots[i-1].timestamp, snapshots[i].timestamp)
+                if range.contains(mid) { marks.append(mid) }
+            }
         }
-        t = next.addingTimeInterval(5 * 3600)
-        while t <= range.upperBound {
-            result.append(t)
-            t = t.addingTimeInterval(5 * 3600)
+        if let next = nextReset5h, range.contains(next) {
+            marks.append(next)
         }
-        return result
+        return marks
     }
 
     /// Weekly reset marker — at most one inside the visible 1w range,
     /// since the 7-day cycle barely fits more than once in a 1w view.
     private func weeklyResetMarks(in range: ClosedRange<Date>) -> [Date] {
         guard let next = nextResetWeek else { return [] }
-        return (next >= range.lowerBound && next <= range.upperBound) ? [next] : []
+        return range.contains(next) ? [next] : []
+    }
+
+    /// Build the chart points for the 5h line, inserting synthetic
+    /// step-down vertices around every detected reset. Result for a
+    /// reset between snapshot A (47%) and snapshot B (2%):
+    ///
+    ///   [..., (A.t, 47), (mid - ε, 47), (mid, 0), (B.t, 2), ...]
+    ///
+    /// LineMark connects these in order, producing a near-flat hold
+    /// followed by a vertical drop to 0, then a climb to B — which is
+    /// what users intuit when they see "the 5h window just reset."
+    private func augmented5hLine(_ snapshots: [UsageSnapshot]) -> [LinePoint] {
+        var out: [LinePoint] = []
+        for i in 0..<snapshots.count {
+            let s = snapshots[i]
+            if i > 0 {
+                let prev = snapshots[i-1]
+                if s.used5h < prev.used5h {
+                    let mid = midpoint(prev.timestamp, s.timestamp)
+                    out.append(LinePoint(
+                        time: mid.addingTimeInterval(-0.001),
+                        value: prev.fraction5h * 100))
+                    out.append(LinePoint(time: mid, value: 0))
+                }
+            }
+            out.append(LinePoint(time: s.timestamp, value: s.fraction5h * 100))
+        }
+        return out
+    }
+
+    private func midpoint(_ a: Date, _ b: Date) -> Date {
+        Date(timeIntervalSince1970:
+            (a.timeIntervalSince1970 + b.timeIntervalSince1970) / 2)
     }
 
     /// Pick an x-axis label format that matches the timeframe granularity.
