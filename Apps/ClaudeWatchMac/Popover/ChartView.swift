@@ -180,19 +180,23 @@ struct ChartView: View {
         let value: Double          // percent, 0–100
     }
 
-    /// 5h-window resets we can prove from snapshot history. Two signals
-    /// — both fire as a "reset event happened in the gap":
+    /// 5h-window resets we can prove from snapshot history. Two signals,
+    /// either of which proves "a reset event happened in the gap":
     ///
-    ///   • `used_5h` decreased between consecutive snapshots. Catches
-    ///     the common case (window expired, used_5h went from a high
-    ///     value to 0).
-    ///   • `resetTime5h` jumped forward by more than an hour between
-    ///     consecutive snapshots. Catches the post-idle case (user was
-    ///     idle for >5 h, the old window expired silently with
-    ///     used_5h staying at 0 the whole time, then a new message
-    ///     started a new window — used_5h goes 0 → 1 % which doesn't
-    ///     trigger the "decreased" signal, but resetTime5h jumps
-    ///     forward by ~5 h).
+    ///   • used_5h dropped by MORE THAN 10% of the ceiling between
+    ///     consecutive snapshots. Real resets always exceed this
+    ///     threshold (used_5h goes from any active value to 0). The
+    ///     threshold rejects noise — Anthropic's API occasionally
+    ///     returns slightly-lower used_5h within a window (transient
+    ///     state, rounding, …) without a real reset; before this fix
+    ///     those tiny dips produced false-positive markers at the
+    ///     wrong x.
+    ///
+    ///   • Was idle (prev.fraction5h < 2%) AND resetTime5h jumped
+    ///     forward by >2 h. Catches the post-idle case (old window
+    ///     expired silently while idle, new one starting now —
+    ///     used_5h goes 0 → 1 %, which doesn't trigger the drop
+    ///     check, but resetTime5h jumps forward).
     ///
     /// Combined with the upcoming reset from the API, these are the
     /// only indigo guides we draw. zip(...,dropFirst()) is empty-safe;
@@ -201,9 +205,7 @@ struct ChartView: View {
                                     snapshots: [UsageSnapshot]) -> [Date] {
         var marks: [Date] = []
         for (prev, curr) in zip(snapshots, snapshots.dropFirst()) {
-            let usedDecreased = curr.used5h < prev.used5h
-            let resetTimeJumped = curr.resetTime5h.timeIntervalSince(prev.resetTime5h) > 3600
-            if usedDecreased || resetTimeJumped {
+            if isResetBetween(prev, curr) {
                 let mid = midpoint(prev.timestamp, curr.timestamp)
                 if range.contains(mid) { marks.append(mid) }
             }
@@ -212,6 +214,27 @@ struct ChartView: View {
             marks.append(next)
         }
         return marks
+    }
+
+    /// True if the gap between prev and curr contains a 5h-window reset.
+    /// Used by both the marker detector and the line augmentation so
+    /// they stay in sync (no markers without a corresponding visual
+    /// step in the line; no synthetic 0%-drop without a marker).
+    private func isResetBetween(_ prev: UsageSnapshot, _ curr: UsageSnapshot) -> Bool {
+        if isSignificantDrop(prev: prev, curr: curr) { return true }
+        let prevWasIdle = prev.fraction5h < 0.02
+        let resetTimeJumped = curr.resetTime5h.timeIntervalSince(prev.resetTime5h) > 2 * 3600
+        return prevWasIdle && resetTimeJumped
+    }
+
+    /// True if used_5h dropped by more than 10% of the ceiling.
+    /// Threshold rejects mid-window API noise; real resets (drop to 0)
+    /// always exceed it.
+    private func isSignificantDrop(prev: UsageSnapshot, curr: UsageSnapshot) -> Bool {
+        let ceiling = Double(prev.ceiling5h)
+        guard ceiling > 0 else { return false }
+        let dropFraction = (Double(prev.used5h) - Double(curr.used5h)) / ceiling
+        return dropFraction > 0.10
     }
 
     /// Weekly reset marker — at most one inside the visible 1w range,
@@ -230,13 +253,20 @@ struct ChartView: View {
     /// LineMark connects these in order, producing a near-flat hold
     /// followed by a vertical drop to 0, then a climb to B — which is
     /// what users intuit when they see "the 5h window just reset."
+    ///
+    /// Uses `isSignificantDrop` (the same threshold as the marker
+    /// detector) so the synthetic 0%-step only fires for REAL resets,
+    /// not API noise. Post-idle resets (caught by resetTime5h jump
+    /// in the marker detector) don't get a synthetic step here —
+    /// the line is already at 0% during idle, so no visual change is
+    /// needed; the marker alone tells the user "new window starting."
     private func augmented5hLine(_ snapshots: [UsageSnapshot]) -> [LinePoint] {
         var out: [LinePoint] = []
         for i in 0..<snapshots.count {
             let s = snapshots[i]
             if i > 0 {
                 let prev = snapshots[i-1]
-                if s.used5h < prev.used5h {
+                if isSignificantDrop(prev: prev, curr: s) {
                     let mid = midpoint(prev.timestamp, s.timestamp)
                     out.append(LinePoint(
                         time: mid.addingTimeInterval(-0.001),
