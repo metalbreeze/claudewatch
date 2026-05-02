@@ -160,12 +160,17 @@ struct ChartView: View {
     /// have happened in the gap (used_5h is monotonically non-decreasing
     /// within a single window). Combined with the upcoming reset from
     /// the API, these are the only indigo guides we draw.
+    ///
+    /// Iterating with `zip(snapshots, snapshots.dropFirst())` instead of
+    /// `1..<count` because the latter trap-crashes when `snapshots` is
+    /// empty (Range requires lowerBound ≤ upperBound, and `1..<0` is
+    /// invalid). zip is empty-safe by construction.
     private func fiveHourResetMarks(in range: ClosedRange<Date>,
                                     snapshots: [UsageSnapshot]) -> [Date] {
         var marks: [Date] = []
-        for i in 1..<snapshots.count {
-            if snapshots[i].used5h < snapshots[i-1].used5h {
-                let mid = midpoint(snapshots[i-1].timestamp, snapshots[i].timestamp)
+        for (prev, curr) in zip(snapshots, snapshots.dropFirst()) {
+            if curr.used5h < prev.used5h {
+                let mid = midpoint(prev.timestamp, curr.timestamp)
                 if range.contains(mid) { marks.append(mid) }
             }
         }
