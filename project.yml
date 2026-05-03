@@ -44,6 +44,9 @@ targets:
         excludes:
           - "Info.plist"
           - "ClaudeWatchMac.entitlements"
+          # Belongs to the sibling App Store target — exclude here so
+          # XcodeGen doesn't try to compile it into the DMG target.
+          - "ClaudeWatchMacAppStore.entitlements"
       # Each .lproj/Localizable.strings is a variant of one logical
       # localized resource. XcodeGen detects the .lproj naming
       # convention and groups them automatically.
@@ -54,6 +57,10 @@ targets:
         CFBundleDisplayName: Claude Watch
         CFBundleShortVersionString: "0.1.8"
         CFBundleVersion: "9"
+        # Required for App Store submission; harmless on the DMG path.
+        # "developer-tools" fits — primary audience is users of
+        # claude.ai / Claude Code / Anthropic API.
+        LSApplicationCategoryType: public.app-category.developer-tools
         # The whole point of this app — runs in menu bar, no Dock icon.
         LSUIElement: YES
         NSHumanReadableCopyright: ""
@@ -93,6 +100,11 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
         SDKROOT: macosx
         MACOSX_DEPLOYMENT_TARGET: "13.0"
+        # Tells actool which AppIcon set in Assets.xcassets to compile
+        # as the app icon. The DMG path doesn't strictly need this (Apple
+        # Developer ID accepts iconless apps), but Finder/Dock and the
+        # menu bar tooltip preview look much better with it set.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       configs:
         # Debug builds: ad-hoc sign for local dev runs (no cert needed).
         Debug:
@@ -109,6 +121,106 @@ targets:
           CODE_SIGN_IDENTITY: "Developer ID Application"
           CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
           OTHER_CODE_SIGN_FLAGS: "--timestamp --options=runtime"
+    dependencies:
+      - package: UsageCore
+        product: UsageCore
+
+  # ===== macOS Mac App Store build =========================================
+  # Mirrors ClaudeWatchMac sources exactly; differs only in:
+  #   • App Sandbox enabled (Mac App Store requirement)
+  #   • Signed with "Apple Distribution" + Mac App Store provisioning
+  #     profile (vs. Developer ID Application + ad-hoc/automatic for the
+  #     DMG target)
+  #
+  # Both targets share Info.plist and Resources, so version bumps and
+  # localized strings only need to change in one place.
+  #
+  # Sandbox redirects ~/Library/Application Support to the per-app
+  # container automatically — FileSecretStore and the GRDB snapshots DB
+  # don't need code changes; macOS handles it transparently.
+  #
+  # Existing DMG users are NOT migrated to the sandbox container — by
+  # design (option A from brainstorming). Mac App Store users will start
+  # fresh with a cURL paste; this is acceptable because the two
+  # distribution channels target different audiences.
+  ClaudeWatchMacAppStore:
+    type: application
+    platform: macOS
+    sources:
+      - path: Apps/ClaudeWatchMac
+        excludes:
+          - "Info.plist"
+          - "ClaudeWatchMac.entitlements"
+          - "ClaudeWatchMacAppStore.entitlements"
+      - path: Apps/ClaudeWatchMac/Resources
+    info:
+      path: Apps/ClaudeWatchMac/Info.plist
+      properties:
+        CFBundleDisplayName: Claude Watch
+        CFBundleShortVersionString: "0.1.8"
+        CFBundleVersion: "9"
+        LSApplicationCategoryType: public.app-category.developer-tools
+        LSUIElement: YES
+        NSHumanReadableCopyright: ""
+        NSSupportsAutomaticTermination: YES
+        NSSupportsSuddenTermination: YES
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations:
+          - en
+          - zh-Hans
+          - zh-Hant
+          - ja
+          - ko
+          - es
+          - de
+          - fr
+    entitlements:
+      path: Apps/ClaudeWatchMac/ClaudeWatchMacAppStore.entitlements
+      properties:
+        # Mac App Store distribution requires App Sandbox.
+        com.apple.security.app-sandbox: true
+        # Required so JSONUsageScraper can hit claude.ai over HTTPS,
+        # and WKWebView (HiddenChallengeView) can solve Cloudflare.
+        com.apple.security.network.client: true
+        # CSV export uses NSSavePanel — Powerbox grants Read+Write
+        # only when this entitlement is present. Without it, writes to
+        # the user-picked path silently fail under sandbox.
+        com.apple.security.files.user-selected.read-write: true
+        # NOTE: App Group entitlement deliberately omitted. It will be
+        # added in the same release that introduces the macOS Widget
+        # extension (alongside data path migration to the shared
+        # container). Adding it speculatively now triggers
+        # provisioning-profile mismatches and invites App Store review
+        # questions about why an unused capability is requested.
+    settings:
+      base:
+        # Same Bundle ID as DMG — only one of the two artifacts ever
+        # ships to a given user, so there's no collision in practice.
+        # The provisioning profile is keyed to this exact ID.
+        PRODUCT_BUNDLE_IDENTIFIER: studio.cybertron.claudewatch.mac
+        PRODUCT_NAME: "Claude Watch"
+        MARKETING_VERSION: "0.1.8"
+        CURRENT_PROJECT_VERSION: "9"
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        SDKROOT: macosx
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        # Mac App Store strictly requires an icon (1024×1024 in ICNS or
+        # asset catalog). actool reads Assets.xcassets/AppIcon.appiconset
+        # at build time and emits CFBundleIconName into Info.plist.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # Manual signing — Xcode automatic signing tries to issue its
+        # own profile, which fights with the one we just installed.
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "Apple Distribution"
+        DEVELOPMENT_TEAM: MKSL2N4Y23
+        # Match by profile *name* (the human label set in the portal),
+        # not UUID — survives profile renewal without project edits.
+        PROVISIONING_PROFILE_SPECIFIER: "ClaudeWatch Mac App Store"
+        # Same reasoning as DMG target: stop Xcode from injecting
+        # get-task-allow=true into the binary at sign time.
+        CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
+        OTHER_CODE_SIGN_FLAGS: "--timestamp --options=runtime"
     dependencies:
       - package: UsageCore
         product: UsageCore
