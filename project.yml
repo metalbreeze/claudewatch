@@ -56,7 +56,7 @@ targets:
       properties:
         CFBundleDisplayName: Claude Watch
         CFBundleShortVersionString: "0.1.8"
-        CFBundleVersion: "9"
+        CFBundleVersion: "10"
         # Required for App Store submission; harmless on the DMG path.
         # "developer-tools" fits — primary audience is users of
         # claude.ai / Claude Code / Anthropic API.
@@ -104,7 +104,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: studio.cybertron.claudewatch.mac
         MARKETING_VERSION: "0.1.8"
-        CURRENT_PROJECT_VERSION: "9"
+        CURRENT_PROJECT_VERSION: "10"
         GENERATE_INFOPLIST_FILE: NO
         ENABLE_HARDENED_RUNTIME: YES
         SDKROOT: macosx
@@ -167,7 +167,7 @@ targets:
       properties:
         CFBundleDisplayName: Claude Watch
         CFBundleShortVersionString: "0.1.8"
-        CFBundleVersion: "9"
+        CFBundleVersion: "10"
         LSApplicationCategoryType: public.app-category.developer-tools
         # Tells App Store Connect we use only Apple's built-in
         # cryptography (URLSession TLS, code signing, etc.) — i.e.
@@ -218,7 +218,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: studio.cybertron.claudewatch.mac
         PRODUCT_NAME: "Claude Watch"
         MARKETING_VERSION: "0.1.8"
-        CURRENT_PROJECT_VERSION: "9"
+        CURRENT_PROJECT_VERSION: "10"
         GENERATE_INFOPLIST_FILE: NO
         ENABLE_HARDENED_RUNTIME: YES
         SDKROOT: macosx
