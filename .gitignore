@@ -35,3 +35,12 @@ dmg-staging/
 # source. The signed .pkg is uploaded via `xcrun altool` then
 # discarded.
 build/
+
+# Post-processed App Store screenshots (1280×800 PNGs derived from
+# raw screen captures via `magick … -crop … -resize`). Easy to
+# regenerate; not source.
+AppStoreScreenshots/
+
+# Personal scratch images (preview renders, work-in-progress mocks)
+# that aren't shipping with the app.
+myImages/preview*.png

@@ -75,19 +75,23 @@ struct ChartView: View {
         let visibleForecast = forecast?.line.filter { $0.time <= xMax } ?? []
 
         // Reset markers:
-        //   • 1h/8h/24h → indigo lines at REAL past resets (detected from
-        //     drops in used_5h between consecutive snapshots) plus the
-        //     upcoming reset from the API.
+        //   • 1h/8h/24h → indigo lines at every 5h boundary that falls
+        //     inside the chart range, derived deterministically from
+        //     the API's nextReset5h by stepping ±5h. No snapshot
+        //     scanning, no drop-detection heuristics.
         //   • 1w → just the upcoming weekly reset (the saw-tooth pattern
         //     of the 5h line itself shows where rolling resets happened,
         //     so dotting the chart with ~33 markers is just noise).
         let resetMarks: [Date] = showsWeekLine
             ? weeklyResetMarks(in: cutoff...xMax)
-            : fiveHourResetMarks(in: cutoff...xMax, snapshots: visible)
+            : fiveHourResetTimes(in: cutoff...xMax, snapshots: visible)
         // Augment the raw 5h snapshot stream with synthetic step-down
-        // points at every detected reset so the line visibly drops to
-        // 0% at the boundary instead of slanting smoothly across it.
-        let line5h = augmented5hLine(visible)
+        // points at every reset time, so the line visibly drops to
+        // 0% AT THE INDIGO BOUNDARY instead of slanting smoothly past
+        // it. The drop happens at the exact API reset time — same x
+        // as the RuleMark — so the green descent and indigo line
+        // coincide perfectly.
+        let line5h = augmented5hLine(visible, resets: resetMarks)
 
         Chart {
             // Data lines first, reset markers ON TOP — Swift Charts
@@ -180,61 +184,57 @@ struct ChartView: View {
         let value: Double          // percent, 0–100
     }
 
-    /// 5h-window resets we can prove from snapshot history. Two signals,
-    /// either of which proves "a reset event happened in the gap":
+    /// All 5h-window reset times that fall inside `range`. Combines
+    /// THREE independent signals so we get precise timing for both
+    /// historical and upcoming resets:
     ///
-    ///   • used_5h dropped by MORE THAN 10% of the ceiling between
-    ///     consecutive snapshots. Real resets always exceed this
-    ///     threshold (used_5h goes from any active value to 0). The
-    ///     threshold rejects noise — Anthropic's API occasionally
-    ///     returns slightly-lower used_5h within a window (transient
-    ///     state, rounding, …) without a real reset; before this fix
-    ///     those tiny dips produced false-positive markers at the
-    ///     wrong x.
+    ///   1. **Snapshot crossings (historical, precise).** Whenever a
+    ///      consecutive snapshot pair (prev, curr) has
+    ///      `curr.timestamp ≥ prev.resetTime5h`, the reset that prev
+    ///      saw coming actually happened. The reset moment is exactly
+    ///      `prev.resetTime5h` — not a midpoint estimate. This is
+    ///      drop-magnitude-independent: it fires when the boundary is
+    ///      crossed, regardless of how full the window was.
     ///
-    ///   • Was idle (prev.fraction5h < 2%) AND resetTime5h jumped
-    ///     forward by >2 h. Catches the post-idle case (old window
-    ///     expired silently while idle, new one starting now —
-    ///     used_5h goes 0 → 1 %, which doesn't trigger the drop
-    ///     check, but resetTime5h jumps forward).
+    ///   2. **API's current upcoming reset (`nextReset5h`).** The
+    ///      reset the user is heading toward right now.
     ///
-    /// Combined with the upcoming reset from the API, these are the
-    /// only indigo guides we draw. zip(...,dropFirst()) is empty-safe;
-    /// `1..<snapshots.count` would trap on empty.
-    private func fiveHourResetMarks(in range: ClosedRange<Date>,
+    ///   3. **`nextReset5h + 5h` (next-but-one).** Useful on the
+    ///      8h/24h chart where the right edge can extend past the
+    ///      first reset; under continued activity this is exactly
+    ///      where the next-but-one boundary lands.
+    ///
+    /// CRITICAL: We do NOT enumerate past resets by stepping
+    /// `nextReset5h - 5h × k` backward. Anthropic's 5h window is a
+    /// rolling window — when the user is idle, `resets_at` slides
+    /// forward indefinitely, so subtracting 5h would point to
+    /// fictitious past times where no reset actually happened.
+    /// Snapshot crossings (signal #1) is the only safe way to
+    /// reconstruct historical resets.
+    private func fiveHourResetTimes(in range: ClosedRange<Date>,
                                     snapshots: [UsageSnapshot]) -> [Date] {
         var marks: [Date] = []
+
+        // Signal #1 — historical resets. The reset time recorded
+        // by `prev` has been crossed by `curr.timestamp`. Use
+        // prev.resetTime5h as the reset's exact timestamp.
         for (prev, curr) in zip(snapshots, snapshots.dropFirst()) {
-            if isResetBetween(prev, curr) {
-                let mid = midpoint(prev.timestamp, curr.timestamp)
-                if range.contains(mid) { marks.append(mid) }
+            if curr.timestamp >= prev.resetTime5h,
+               range.contains(prev.resetTime5h) {
+                marks.append(prev.resetTime5h)
             }
         }
-        if let next = nextReset5h, range.contains(next) {
-            marks.append(next)
+
+        // Signals #2 and #3 — upcoming and next-but-one from API.
+        if let next = nextReset5h {
+            if range.contains(next) { marks.append(next) }
+            let afterNext = next.addingTimeInterval(5 * 3600)
+            if range.contains(afterNext) { marks.append(afterNext) }
         }
-        return marks
-    }
 
-    /// True if the gap between prev and curr contains a 5h-window reset.
-    /// Used by both the marker detector and the line augmentation so
-    /// they stay in sync (no markers without a corresponding visual
-    /// step in the line; no synthetic 0%-drop without a marker).
-    private func isResetBetween(_ prev: UsageSnapshot, _ curr: UsageSnapshot) -> Bool {
-        if isSignificantDrop(prev: prev, curr: curr) { return true }
-        let prevWasIdle = prev.fraction5h < 0.02
-        let resetTimeJumped = curr.resetTime5h.timeIntervalSince(prev.resetTime5h) > 2 * 3600
-        return prevWasIdle && resetTimeJumped
-    }
-
-    /// True if used_5h dropped by more than 10% of the ceiling.
-    /// Threshold rejects mid-window API noise; real resets (drop to 0)
-    /// always exceed it.
-    private func isSignificantDrop(prev: UsageSnapshot, curr: UsageSnapshot) -> Bool {
-        let ceiling = Double(prev.ceiling5h)
-        guard ceiling > 0 else { return false }
-        let dropFraction = (Double(prev.used5h) - Double(curr.used5h)) / ceiling
-        return dropFraction > 0.10
+        // Dedupe (a snapshot crossing right at the API's nextReset5h
+        // would otherwise produce two markers at nearly the same x).
+        return Array(Set(marks)).sorted()
     }
 
     /// Weekly reset marker — at most one inside the visible 1w range,
@@ -244,44 +244,50 @@ struct ChartView: View {
         return range.contains(next) ? [next] : []
     }
 
-    /// Build the chart points for the 5h line, inserting synthetic
-    /// step-down vertices around every detected reset. Result for a
-    /// reset between snapshot A (47%) and snapshot B (2%):
+    /// Build the chart points for the 5h line, inserting a synthetic
+    /// vertical drop at every reset time that lands BETWEEN two
+    /// consecutive snapshots. Drops happen at the exact API reset
+    /// time — same x as the indigo RuleMark — so the green descent
+    /// and the indigo guide visually coincide.
     ///
-    ///   [..., (A.t, 47), (mid - ε, 47), (mid, 0), (B.t, 2), ...]
+    /// Result for snapshot A (47%) at 23:55, reset at 00:23, snapshot
+    /// B (1%) at 00:25:
     ///
-    /// LineMark connects these in order, producing a near-flat hold
-    /// followed by a vertical drop to 0, then a climb to B — which is
-    /// what users intuit when they see "the 5h window just reset."
+    ///   [..., (23:55, 47),
+    ///         (00:22:59.999, 47),   ← held until just before reset
+    ///         (00:23, 0),           ← drop at exact reset time
+    ///         (00:25, 1), ...]
     ///
-    /// Uses `isSignificantDrop` (the same threshold as the marker
-    /// detector) so the synthetic 0%-step only fires for REAL resets,
-    /// not API noise. Post-idle resets (caught by resetTime5h jump
-    /// in the marker detector) don't get a synthetic step here —
-    /// the line is already at 0% during idle, so no visual change is
-    /// needed; the marker alone tells the user "new window starting."
-    private func augmented5hLine(_ snapshots: [UsageSnapshot]) -> [LinePoint] {
+    /// Idle case: if the prior snapshot is already at ≈0%, no synthetic
+    /// drop is added — the line is already flat at 0 and an extra pair
+    /// of points would just clutter the data series.
+    private func augmented5hLine(_ snapshots: [UsageSnapshot],
+                                 resets: [Date]) -> [LinePoint] {
         var out: [LinePoint] = []
+        let sortedResets = resets.sorted()
+        var resetIdx = 0
         for i in 0..<snapshots.count {
             let s = snapshots[i]
             if i > 0 {
                 let prev = snapshots[i-1]
-                if isSignificantDrop(prev: prev, curr: s) {
-                    let mid = midpoint(prev.timestamp, s.timestamp)
-                    out.append(LinePoint(
-                        time: mid.addingTimeInterval(-0.001),
-                        value: prev.fraction5h * 100))
-                    out.append(LinePoint(time: mid, value: 0))
+                // Insert a vertical drop for every reset strictly
+                // between prev and s.
+                while resetIdx < sortedResets.count {
+                    let r = sortedResets[resetIdx]
+                    if r <= prev.timestamp { resetIdx += 1; continue }
+                    if r >= s.timestamp { break }
+                    if prev.fraction5h > 0.001 {
+                        out.append(LinePoint(
+                            time: r.addingTimeInterval(-0.001),
+                            value: prev.fraction5h * 100))
+                        out.append(LinePoint(time: r, value: 0))
+                    }
+                    resetIdx += 1
                 }
             }
             out.append(LinePoint(time: s.timestamp, value: s.fraction5h * 100))
         }
         return out
-    }
-
-    private func midpoint(_ a: Date, _ b: Date) -> Date {
-        Date(timeIntervalSince1970:
-            (a.timeIntervalSince1970 + b.timeIntervalSince1970) / 2)
     }
 
     /// Pick an x-axis label format that matches the timeframe granularity.
