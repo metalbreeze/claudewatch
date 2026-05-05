@@ -61,9 +61,18 @@ targets:
         # "developer-tools" fits — primary audience is users of
         # claude.ai / Claude Code / Anthropic API.
         LSApplicationCategoryType: public.app-category.developer-tools
+        # Tells App Store Connect we use only Apple's built-in
+        # cryptography (URLSession TLS, code signing, etc.) — i.e.
+        # nothing that requires a U.S. BIS export-compliance review.
+        # Setting this to false makes ASC skip the "App 加密文稿"
+        # dialog on every new build upload.
+        ITSAppUsesNonExemptEncryption: false
         # The whole point of this app — runs in menu bar, no Dock icon.
         LSUIElement: YES
-        NSHumanReadableCopyright: ""
+        # Shown in macOS' "About Claude Watch" dialog. Must include the
+        # © glyph here (unlike the App Store Connect copyright field,
+        # which Apple prefixes automatically).
+        NSHumanReadableCopyright: "© 2026 Cybertron Studio"
         NSSupportsAutomaticTermination: YES
         NSSupportsSuddenTermination: YES
         # Languages the bundle ships translations for. macOS picks the
@@ -160,8 +169,17 @@ targets:
         CFBundleShortVersionString: "0.1.8"
         CFBundleVersion: "9"
         LSApplicationCategoryType: public.app-category.developer-tools
+        # Tells App Store Connect we use only Apple's built-in
+        # cryptography (URLSession TLS, code signing, etc.) — i.e.
+        # nothing that requires a U.S. BIS export-compliance review.
+        # Setting this to false makes ASC skip the "App 加密文稿"
+        # dialog on every new build upload.
+        ITSAppUsesNonExemptEncryption: false
         LSUIElement: YES
-        NSHumanReadableCopyright: ""
+        # Shown in macOS' "About Claude Watch" dialog. Must include the
+        # © glyph here (unlike the App Store Connect copyright field,
+        # which Apple prefixes automatically).
+        NSHumanReadableCopyright: "© 2026 Cybertron Studio"
         NSSupportsAutomaticTermination: YES
         NSSupportsSuddenTermination: YES
         CFBundleDevelopmentRegion: en
