@@ -4,7 +4,7 @@ import UsageCore
 /// Caption beneath the chart that summarises the current forecast state.
 /// Wording is matched to the chart line so the user never sees "stable"
 /// next to a visibly-rising line. Five states, mirroring the visual
-/// matrix in `ChartView.ForecastTone`:
+/// matrix in `LineChartView.forecastDash(_:)`:
 ///
 ///   • forecast == nil                              → "Building forecast…"
 ///   • hit != nil, R² ≥ 0.5                         → "likely full at HH:MM"

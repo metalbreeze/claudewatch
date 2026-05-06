@@ -84,11 +84,11 @@ struct PopoverRootView: View {
             }
 
             TimeframePicker(selection: $timeframe)
-            ChartView(snapshots: snapshots,
-                      forecast: controller.state.forecast,
-                      timeframe: timeframe,
-                      nextReset5h: controller.state.latest?.resetTime5h,
-                      nextResetWeek: controller.state.latest?.resetTimeWeek)
+            LineChartView(snapshots: snapshots,
+                          forecast: controller.state.forecast,
+                          timeframe: timeframe,
+                          nextReset5h: controller.state.latest?.resetTime5h,
+                          nextResetWeek: controller.state.latest?.resetTimeWeek)
             // Show forecast caption on every timeframe except 1w. The
             // forecast is short-term and 5h-based; on the 7-day view we
             // plot fractionWeek instead, so the 5h-forecast caption

@@ -21,7 +21,7 @@ enum ChartPalette {
     static let resetBoundary = Color.indigo.opacity(0.6)
 }
 
-struct ChartView: View {
+struct LineChartView: View {
     let snapshots: [UsageSnapshot]
     let forecast: ForecastResult?
     let timeframe: Timeframe
