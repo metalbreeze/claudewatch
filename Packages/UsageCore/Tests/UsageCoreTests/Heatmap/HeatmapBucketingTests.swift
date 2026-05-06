@@ -46,26 +46,29 @@ final class HeatmapBucketingTests: XCTestCase {
 
     func test_singleSnapshot_inCorrectBucket() {
         // Snapshot at 2026-05-06 14:23 UTC, "now" is the same day at 23:59.
-        // dayDelta = 0 → dayIndex = 27. hour = 14 → slotIndex = 14/4 = 3.
+        // dayDelta = 0 → dayIndex = 27. hour = 14 → slotIndex = 14/2 = 7.
         let now = parseUTC("2026-05-06T23:59:00Z")
         let s = snap(at: "2026-05-06T14:23:00Z", used: 50, ceiling: 100)
         let result = HeatmapBucket.bucketize([s], now: now, calendar: utcCalendar)
-        let key = HeatmapBucket(dayIndex: 27, slotIndex: 3)
+        let key = HeatmapBucket(dayIndex: 27, slotIndex: 7)
         XCTAssertEqual(result.count, 1)
         XCTAssertEqual(result[key] ?? 0, 0.5, accuracy: 0.001)
     }
 
     func test_takesMaxNotAverage() {
         // Three snapshots in the same (day, slot) at 30%, 60%, 45%.
+        // All three timestamps fall inside hour 12-14 (slot 6 with
+        // slotHours=2: 12/2=6, 13/2=6) so the test exercises bucket
+        // collision rather than spanning slots.
         // Result should be 0.60 (max), not 0.45 (avg).
         let now = parseUTC("2026-05-06T23:59:00Z")
         let snaps = [
-            snap(at: "2026-05-06T13:00:00Z", used: 30, ceiling: 100),
-            snap(at: "2026-05-06T13:30:00Z", used: 60, ceiling: 100),
-            snap(at: "2026-05-06T14:00:00Z", used: 45, ceiling: 100),
+            snap(at: "2026-05-06T12:10:00Z", used: 30, ceiling: 100),
+            snap(at: "2026-05-06T13:00:00Z", used: 60, ceiling: 100),
+            snap(at: "2026-05-06T13:55:00Z", used: 45, ceiling: 100),
         ]
         let result = HeatmapBucket.bucketize(snaps, now: now, calendar: utcCalendar)
-        let key = HeatmapBucket(dayIndex: 27, slotIndex: 3)
+        let key = HeatmapBucket(dayIndex: 27, slotIndex: 6)
         XCTAssertEqual(result[key] ?? 0, 0.60, accuracy: 0.001)
     }
 
@@ -80,20 +83,21 @@ final class HeatmapBucketingTests: XCTestCase {
         XCTAssertEqual(result.count, 1)
         // Real check: nothing in the result has an out-of-range dayIndex.
         XCTAssertTrue(result.keys.allSatisfy { (0..<HeatmapBucket.dayCount).contains($0.dayIndex) })
-        XCTAssertNotNil(result[HeatmapBucket(dayIndex: 0, slotIndex: 3)])
+        // hour 12 / slotHours 2 = slot 6.
+        XCTAssertNotNil(result[HeatmapBucket(dayIndex: 0, slotIndex: 6)])
     }
 
     func test_dayBoundaryAtMidnight() {
-        // Snapshot at 2026-05-06 23:59:59 lands in slotIndex 5 (20-24).
+        // Snapshot at 2026-05-06 23:59:59 lands in slotIndex 11 (22-24).
         // Snapshot 2 seconds later (2026-05-07 00:00:01) lands in
         // slotIndex 0 of the next day.
         let now = parseUTC("2026-05-07T12:00:00Z")
         let lateSnap  = snap(at: "2026-05-06T23:59:59Z")
         let earlySnap = snap(at: "2026-05-07T00:00:01Z")
         let result = HeatmapBucket.bucketize([lateSnap, earlySnap], now: now, calendar: utcCalendar)
-        // Late snap: 1 day before now → dayIndex = 26. slot = 23/4 = 5.
-        XCTAssertNotNil(result[HeatmapBucket(dayIndex: 26, slotIndex: 5)])
-        // Early snap: same day as now → dayIndex = 27. slot = 0/4 = 0.
+        // Late snap: 1 day before now → dayIndex = 26. slot = 23/2 = 11.
+        XCTAssertNotNil(result[HeatmapBucket(dayIndex: 26, slotIndex: 11)])
+        // Early snap: same day as now → dayIndex = 27. slot = 0/2 = 0.
         XCTAssertNotNil(result[HeatmapBucket(dayIndex: 27, slotIndex: 0)])
     }
 }

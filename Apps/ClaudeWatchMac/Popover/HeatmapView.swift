@@ -63,15 +63,18 @@ struct HeatmapView: View {
                 }
             }
 
-            // 2. Left-axis hour labels (00, 04, 08, 12, 16, 20).
-            for slot in 0..<slots {
-                let label = String(format: "%02d", slot * 4)
+            // 2. Left-axis hour labels — show every 4 hours (00, 04,
+            // 08, 12, 16, 20) regardless of slot size, so labels never
+            // crowd. Stride is "labels per 4 hours" = 4 / slotHours.
+            let labelStride = max(1, 4 / HeatmapBucket.slotHours)
+            for slot in stride(from: 0, to: slots, by: labelStride) {
+                let label = String(format: "%02d", slot * HeatmapBucket.slotHours)
                 let text = Text(label)
                     .font(.system(size: 8))
                     .foregroundColor(.secondary)
                 let resolved = ctx.resolve(text)
                 let textSize = resolved.measure(in: CGSize(width: leftAxisWidth,
-                                                           height: cellH))
+                                                           height: cellH * CGFloat(labelStride)))
                 let textOrigin = CGPoint(
                     x: leftAxisWidth - textSize.width - 2,
                     y: gridOriginY + CGFloat(slot) * cellH + (cellH - textSize.height) / 2)

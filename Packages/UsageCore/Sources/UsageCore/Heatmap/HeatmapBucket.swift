@@ -5,9 +5,9 @@ import Foundation
 /// `dayIndex`: 0 = `dayCount-1` days ago, `dayCount-1` = today (according
 /// to the caller-supplied `now`).
 ///
-/// `slotIndex`: 0..5, where each slot covers 4 hours of local
-/// wall-clock time. Slot 0 covers 00:00:00–03:59:59, slot 5 covers
-/// 20:00:00–23:59:59.
+/// `slotIndex`: 0..(24/slotHours - 1), where each slot covers
+/// `slotHours` hours of local wall-clock time. With slotHours=2:
+/// slot 0 covers 00:00:00–01:59:59, slot 11 covers 22:00:00–23:59:59.
 public struct HeatmapBucket: Hashable {
     public let dayIndex: Int
     public let slotIndex: Int
@@ -16,8 +16,11 @@ public struct HeatmapBucket: Hashable {
     /// horizontally with column 0 = oldest, column dayCount-1 = today.
     public static let dayCount = 28
 
-    /// Hours per time-of-day slot. 4 hours × 6 slots = 24-hour day.
-    public static let slotHours = 4
+    /// Hours per time-of-day slot. 2 hours × 12 slots = 24-hour day.
+    /// Finer-grained than 4-hour buckets so users can distinguish
+    /// "early afternoon (12-14)" from "mid afternoon (14-16)" — the
+    /// daily-rhythm signal these bucket sizes resolve.
+    public static let slotHours = 2
 
     public init(dayIndex: Int, slotIndex: Int) {
         self.dayIndex = dayIndex
