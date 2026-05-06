@@ -84,16 +84,25 @@ struct PopoverRootView: View {
             }
 
             TimeframePicker(selection: $timeframe)
-            LineChartView(snapshots: snapshots,
-                          forecast: controller.state.forecast,
-                          timeframe: timeframe,
-                          nextReset5h: controller.state.latest?.resetTime5h,
-                          nextResetWeek: controller.state.latest?.resetTimeWeek)
-            // Show forecast caption on every timeframe except 1w. The
-            // forecast is short-term and 5h-based; on the 7-day view we
-            // plot fractionWeek instead, so the 5h-forecast caption
-            // would mismatch the chart.
-            if timeframe != .oneWeek {
+            // 1m switches to a heatmap visualization. Other timeframes
+            // continue to use the line chart with reset markers and
+            // forecast overlay.
+            if timeframe == .oneMonth {
+                HeatmapView(snapshots: snapshots)
+            } else {
+                LineChartView(snapshots: snapshots,
+                              forecast: controller.state.forecast,
+                              timeframe: timeframe,
+                              nextReset5h: controller.state.latest?.resetTime5h,
+                              nextResetWeek: controller.state.latest?.resetTimeWeek)
+            }
+            // Forecast caption is the 5h-linear-projection caption,
+            // paired with the 5h line in 1h/8h/24h views. Hidden on:
+            //   • 1w — chart plots weekly utilization, not 5h
+            //   • 1m — heatmap doesn't draw the forecast line at all,
+            //     so a "likely full at HH:MM" caption underneath would
+            //     have nothing visual to anchor to.
+            if timeframe != .oneWeek && timeframe != .oneMonth {
                 ForecastCaptionView(forecast: controller.state.forecast)
             }
             FooterView(lastPollAt: controller.state.lastPollAt, onRefresh: {

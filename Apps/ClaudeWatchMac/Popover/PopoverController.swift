@@ -9,7 +9,11 @@ final class PopoverController {
 
     init(ctx: AppContext) {
         self.ctx = ctx
-        popover.contentSize = NSSize(width: 340, height: 420)
+        // Height grew 50 pt vs v0.1.8: chart frame went from 90 to
+        // 140 pt to give the 1m heatmap room for ~16 pt × 6-row
+        // cells. Other tabs share the same height so switching
+        // tabs doesn't animate the popover's outer frame.
+        popover.contentSize = NSSize(width: 340, height: 470)
         popover.behavior = .transient
         rebuildContent()
     }

@@ -173,7 +173,7 @@ struct LineChartView: View {
                 }
             }
         }
-        .frame(height: 90)
+        .frame(height: 140)
     }
 
     /// One point on the 5h line. The chart uses these to draw the actual
