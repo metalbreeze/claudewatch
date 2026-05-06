@@ -90,6 +90,17 @@
 "popover.error.network %@ %@" = "Netzwerk: %@ %@";
 "popover.error.rateLimited %@" = "Rate-Limit erreicht. Wiederholen nach: %@";
 
+/* ── Popover-Wiederherstellungsbanner (ersetzen bei Bedarf den allgemeinen Fehlerblock) ── */
+"popover.recovery.refreshing.title" = "Cloudflare-Cookies werden automatisch aktualisiert…";
+"popover.recovery.refreshing.body" = "Dauert üblicherweise 5–10 Sekunden. Das Popover aktualisiert sich automatisch.";
+"popover.recovery.cloudflareTransient.title" = "Cloudflare-Challenge";
+"popover.recovery.cloudflareTransient.body" = "Wird im nächsten Abruf-Zyklus (ca. 90 s) automatisch aktualisiert.";
+"popover.recovery.cloudflarePersistent.title" = "Cloudflare-Challenge bleibt bestehen";
+"popover.recovery.cloudflarePersistent.body" = "Die automatische Aktualisierung ist mehrfach fehlgeschlagen. Importiere einen neuen cURL aus deinem Browser, um alle Cookies zu erneuern.";
+"popover.recovery.authExpired.title" = "Claude.ai-Sitzung abgelaufen";
+"popover.recovery.authExpired.body" = "Melde dich in deinem Browser bei claude.ai an und importiere dann den cURL erneut.";
+"popover.action.reimport" = "cURL erneut importieren…";
+
 /* ── Prognose-Untertitel ── */
 "popover.forecast.building" = "⏱ Prognose wird erstellt…";
 "popover.forecast.likelyFullAt %@" = "⏱ voraussichtlich voll um %@";

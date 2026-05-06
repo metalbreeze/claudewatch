@@ -89,12 +89,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             render()
         } catch let e as ScrapeError {
             if e.requiresWebViewRefresh {
+                // Mark recovery in flight so the popover renders an
+                // "auto-refreshing…" block instead of the stale
+                // error message during the 2–10 s WKWebView load.
+                c.setRecovering(true)
                 let ok = await HiddenChallengeView.refreshClearance(
                     into: ctx.cookieStore, currentDeviceID: ctx.deviceID)
+                c.setRecovering(false)
                 if ok {
+                    // pollOnce on success will reset
+                    // consecutiveRecoveryFailures back to 0.
                     try? await c.pollOnce()
                     render()
                 } else {
+                    // Auto-refresh failed (rare — usually means the
+                    // sessionKey itself is dead, not just CF cookies).
+                    // Bump the counter; the popover uses this to
+                    // decide between "still trying" and "needs you to
+                    // re-import the cURL".
+                    c.recordRecoveryFailure()
                     statusItem.setText("⌬ ⚠", tooltip: String(localized: "status.tooltip.cloudflareUnrecoverable",
                         defaultValue: "Cloudflare challenge unrecoverable"))
                 }

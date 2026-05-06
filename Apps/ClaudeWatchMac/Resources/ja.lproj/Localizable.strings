@@ -90,6 +90,17 @@
 "popover.error.network %@ %@" = "ネットワークエラー：%@ %@";
 "popover.error.rateLimited %@" = "レート制限中。リトライまで：%@";
 
+/* ── Popover 復旧バナー（該当時に汎用エラー枠を置き換え） ── */
+"popover.recovery.refreshing.title" = "Cloudflare Cookie を自動更新中…";
+"popover.recovery.refreshing.body" = "通常 5〜10 秒かかります。ポップオーバーは自動的に更新されます。";
+"popover.recovery.cloudflareTransient.title" = "Cloudflare 認証";
+"popover.recovery.cloudflareTransient.body" = "次のポーリング（約 90 秒後）で自動的に更新されます。";
+"popover.recovery.cloudflarePersistent.title" = "Cloudflare 認証が継続して失敗";
+"popover.recovery.cloudflarePersistent.body" = "自動更新が複数回失敗しました。ブラウザから cURL を再取得し、すべての Cookie を更新してください。";
+"popover.recovery.authExpired.title" = "Claude.ai セッションの有効期限切れ";
+"popover.recovery.authExpired.body" = "ブラウザで claude.ai にサインインしてから、cURL を再インポートしてください。";
+"popover.action.reimport" = "cURL を再インポート…";
+
 /* ── 予測キャプション ── */
 "popover.forecast.building" = "⏱ 予測を作成中…";
 "popover.forecast.likelyFullAt %@" = "⏱ %@ に上限に達する見込み";

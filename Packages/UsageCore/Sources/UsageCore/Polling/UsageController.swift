@@ -8,6 +8,18 @@ public final class UsageController: ObservableObject {
         public var lastPollAt: Date?
         public var lastError: ScrapeError?
         public var consecutiveAuthFailures: Int = 0
+        /// True while the host app is running an automatic recovery
+        /// flow (e.g. HiddenChallengeView is refreshing Cloudflare
+        /// cookies). Lets the popover render "auto-refreshing…"
+        /// instead of a stale error block during the 2–10 s window
+        /// where the WKWebView is loading claude.ai.
+        public var isRecovering: Bool = false
+        /// Number of consecutive automatic recovery attempts that did
+        /// NOT restore polling. After ≥3 (≈ 5 min at 90 s polling),
+        /// the popover escalates from "wait, auto-refreshing" to
+        /// "manual re-import recommended" with an actionable button.
+        /// Reset to 0 on any successful poll.
+        public var consecutiveRecoveryFailures: Int = 0
     }
 
     @Published public private(set) var state = State()
@@ -49,6 +61,10 @@ public final class UsageController: ObservableObject {
             state.lastPollAt = Date()
             state.lastError = nil
             state.consecutiveAuthFailures = 0
+            // Polling worked → tear down any recovery state. Whatever
+            // refresh the host app did (or didn't) succeeded.
+            state.isRecovering = false
+            state.consecutiveRecoveryFailures = 0
             let recent = try snapshotRepo.fetchRecent(within: 3600)
             state.forecast = forecaster.forecast(snapshots: recent)
             pendingForSync.append(snap)
@@ -74,6 +90,21 @@ public final class UsageController: ObservableObject {
 
     public func snapshots(within seconds: TimeInterval) throws -> [UsageSnapshot] {
         try snapshotRepo.fetchRecent(within: seconds)
+    }
+
+    /// Toggle the "auto-recovering" flag the popover reads. Owned by
+    /// the host app (the recovery itself involves WKWebView, which
+    /// can't live inside this platform-agnostic package).
+    public func setRecovering(_ flag: Bool) {
+        state.isRecovering = flag
+    }
+
+    /// Increment the consecutive-recovery-failure counter. Called by
+    /// the host app when an auto-refresh attempt finishes WITHOUT
+    /// restoring polling. The counter is reset to 0 inside `pollOnce`
+    /// on every successful poll.
+    public func recordRecoveryFailure() {
+        state.consecutiveRecoveryFailures += 1
     }
 
     private func maybeSync() async {

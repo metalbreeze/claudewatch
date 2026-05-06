@@ -48,7 +48,22 @@ final class PopoverController {
             default:      return nil  // follow system
             }
         }()
+        // Closure the popover invokes when the user taps "Re-import
+        // cURL…" inside an error banner. We close the popover before
+        // opening the import window so the new window isn't covered
+        // by it (the popover is .transient and would dismiss itself
+        // on focus loss anyway, but explicit is clearer).
+        let ctx = self.ctx
+        let popover = self.popover
+        let onReimport: () -> Void = { [weak controller] in
+            popover.performClose(nil)
+            CURLImportWindowController.show(ctx: ctx, onSuccess: {
+                Task { @MainActor in try? await controller?.pollOnce() }
+            })
+        }
         popover.contentViewController = NSHostingController(
-            rootView: PopoverRootView(controller: controller, preferredScheme: scheme))
+            rootView: PopoverRootView(controller: controller,
+                                      preferredScheme: scheme,
+                                      onReimport: onReimport))
     }
 }

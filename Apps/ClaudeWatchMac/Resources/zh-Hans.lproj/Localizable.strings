@@ -90,6 +90,17 @@
 "popover.error.network %@ %@" = "网络错误：%@ %@";
 "popover.error.rateLimited %@" = "请求受限。重试等待时间：%@";
 
+/* ── Popover 恢复提示（在适用时替代通用错误块） ── */
+"popover.recovery.refreshing.title" = "正在自动刷新 Cloudflare Cookie…";
+"popover.recovery.refreshing.body" = "通常需要 5–10 秒，弹窗会自动更新。";
+"popover.recovery.cloudflareTransient.title" = "Cloudflare 验证";
+"popover.recovery.cloudflareTransient.body" = "下次轮询时（约 90 秒）将自动刷新。";
+"popover.recovery.cloudflarePersistent.title" = "Cloudflare 验证持续失败";
+"popover.recovery.cloudflarePersistent.body" = "自动刷新已失败多次。请从浏览器重新粘贴 cURL，刷新所有 Cookie。";
+"popover.recovery.authExpired.title" = "Claude.ai 会话已过期";
+"popover.recovery.authExpired.body" = "请在浏览器登录 claude.ai，然后重新粘贴 cURL。";
+"popover.action.reimport" = "重新导入 cURL…";
+
 /* ── 预测说明 ── */
 "popover.forecast.building" = "⏱ 正在生成预测…";
 "popover.forecast.likelyFullAt %@" = "⏱ 预计 %@ 达到上限";

@@ -90,6 +90,17 @@
 "popover.error.network %@ %@" = "네트워크 오류: %@ %@";
 "popover.error.rateLimited %@" = "요청 제한 중. 재시도까지: %@";
 
+/* ── Popover 복구 배너 (해당 시 일반 오류 블록 대체) ── */
+"popover.recovery.refreshing.title" = "Cloudflare 쿠키 자동 갱신 중…";
+"popover.recovery.refreshing.body" = "일반적으로 5~10초 걸립니다. 팝오버가 자동으로 업데이트됩니다.";
+"popover.recovery.cloudflareTransient.title" = "Cloudflare 인증";
+"popover.recovery.cloudflareTransient.body" = "다음 폴링(약 90초)에서 자동으로 갱신됩니다.";
+"popover.recovery.cloudflarePersistent.title" = "Cloudflare 인증 실패 지속";
+"popover.recovery.cloudflarePersistent.body" = "자동 갱신이 여러 번 실패했습니다. 브라우저에서 cURL을 새로 가져와 모든 쿠키를 갱신하세요.";
+"popover.recovery.authExpired.title" = "Claude.ai 세션 만료";
+"popover.recovery.authExpired.body" = "브라우저에서 claude.ai에 로그인한 후 cURL을 다시 가져오세요.";
+"popover.action.reimport" = "cURL 다시 가져오기…";
+
 /* ── 예측 설명 ── */
 "popover.forecast.building" = "⏱ 예측 생성 중…";
 "popover.forecast.likelyFullAt %@" = "⏱ %@에 한도 도달 예상";
