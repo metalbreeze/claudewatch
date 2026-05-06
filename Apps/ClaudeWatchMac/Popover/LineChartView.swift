@@ -293,11 +293,15 @@ struct LineChartView: View {
     /// Pick an x-axis label format that matches the timeframe granularity.
     private var axisFormat: Date.FormatStyle {
         switch timeframe {
-        case .oneHour, .eightHour:
+        case .eightHour:
             return .dateTime.hour().minute()
         case .dayHour:
             return .dateTime.hour()
-        case .oneWeek:
+        case .oneWeek, .oneMonth:
+            // .oneMonth is here defensively — LineChartView never
+            // actually renders for the month view (HeatmapView does).
+            // Keeping the case exhaustive avoids a compile-time
+            // hole if the dispatch ever changes.
             return .dateTime.month(.abbreviated).day()
         }
     }

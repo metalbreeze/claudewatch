@@ -4,7 +4,7 @@ import UsageCore
 
 struct PopoverRootView: View {
     @ObservedObject var controller: UsageController
-    @State private var timeframe: Timeframe = .oneHour
+    @State private var timeframe: Timeframe = .eightHour
     @State private var snapshots: [UsageSnapshot] = []
     /// `nil` follows the system appearance; `.light` / `.dark` overrides it.
     /// Sourced from SettingsRepository.theme by PopoverController and
