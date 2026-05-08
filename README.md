@@ -4,7 +4,9 @@
 
 A macOS menu bar app that watches your `claude.ai` 5-hour and 7-day usage windows. Sits in the top-right of your screen, polls every 90 seconds, and tells you at a glance how close you are to running out.
 
-<img width="370" height="400" alt="Claude Watch popover showing 5H and Week gauges with usage chart" src="https://github.com/user-attachments/assets/ad78b490-be8e-4c10-bee0-3c5c87b3f94a" />
+<img width="377" height="403" alt="Claude Watch popover showing 5H and Week gauges with usage chart ( 8 hours usage view) "  src="https://github.com/user-attachments/assets/6b0166b2-5d28-431b-a352-0bb5347d52ed" />
+
+<img width="370" height="400" alt="Claude Watch popover showing 5H and Week gauges with usage chart ( 1 month Heat Map view)" src="https://github.com/user-attachments/assets/ad78b490-be8e-4c10-bee0-3c5c87b3f94a" />
 
 
 
