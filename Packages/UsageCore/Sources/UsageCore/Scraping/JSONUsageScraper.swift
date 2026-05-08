@@ -30,9 +30,27 @@ public struct JSONUsageScraper: UsageScraper {
     public func fetchSnapshot() async throws -> UsageSnapshot {
         var req = URLRequest(url: endpoint)
         req.timeoutInterval = 15
+        // Mirror what claude.ai's browser fetch sends, so the request
+        // doesn't stand out to Cloudflare's bot detection. Anything
+        // already set as a typed field (User-Agent, Cookie) overrides
+        // these; everything else is a "look like a real browser"
+        // signal that helps us pass the lighter CF challenge variants.
         req.setValue(cookies.userAgent, forHTTPHeaderField: "User-Agent")
         req.setValue(buildCookieHeader(), forHTTPHeaderField: "Cookie")
-        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        req.setValue("application/json, text/plain, */*", forHTTPHeaderField: "Accept")
+        req.setValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
+        req.setValue("https://claude.ai/settings/usage", forHTTPHeaderField: "Referer")
+        req.setValue("empty", forHTTPHeaderField: "Sec-Fetch-Dest")
+        req.setValue("cors", forHTTPHeaderField: "Sec-Fetch-Mode")
+        req.setValue("same-origin", forHTTPHeaderField: "Sec-Fetch-Site")
+        req.setValue("web_claude_ai", forHTTPHeaderField: "anthropic-client-platform")
+        // anthropic-device-id is in the cookie jar, but Anthropic's
+        // backend also expects it as an explicit header on
+        // authenticated calls. Forward it if the user's cURL paste
+        // captured one.
+        if let dev = cookies.all.first(where: { $0.name == "anthropic-device-id" })?.value {
+            req.setValue(dev, forHTTPHeaderField: "anthropic-device-id")
+        }
 
         let (data, resp): (Data, URLResponse)
         do { (data, resp) = try await session.data(for: req) }
@@ -42,7 +60,7 @@ public struct JSONUsageScraper: UsageScraper {
         switch http.statusCode {
         case 200: break
         case 401, 403:
-            if let txt = String(data: data, encoding: .utf8), txt.contains("Just a moment") || txt.contains("cf-challenge") {
+            if isCloudflareChallenge(response: http, body: data) {
                 throw ScrapeError.cloudflareChallenge
             }
             throw ScrapeError.authExpired
@@ -115,11 +133,61 @@ public struct JSONUsageScraper: UsageScraper {
                 options: .regularExpression)
     }
 
+    /// Send every cookie the user pasted, not just the 3 we type-pulled
+    /// (sessionKey / cf_clearance / __cf_bm). A real browser sends every
+    /// cookie it has for the domain — restricting to 3 makes the request
+    /// look bot-like to Cloudflare and can also drop fields Anthropic's
+    /// backend expects (lastActiveOrg, anthropic-device-id, routingHint,
+    /// activitySessionId, etc.). The cookies in `cookies.all` were
+    /// captured from a successful claude.ai session, so they're scoped
+    /// correctly already.
     private func buildCookieHeader() -> String {
-        var parts: [String] = []
-        if let s = cookies.sessionKey { parts.append("sessionKey=\(s)") }
-        if let c = cookies.cfClearance { parts.append("cf_clearance=\(c)") }
-        if let b = cookies.cfBm { parts.append("__cf_bm=\(b)") }
-        return parts.joined(separator: "; ")
+        cookies.all
+            .map { "\($0.name)=\($0.value)" }
+            .joined(separator: "; ")
+    }
+
+    /// Returns true if a 401/403 response is actually a Cloudflare
+    /// challenge rather than a true Anthropic auth rejection.
+    ///
+    /// We layer three signals from cheapest/most-reliable to most-fuzzy:
+    ///
+    ///   1. **`cf-mitigated` response header.** Cloudflare sets this
+    ///      whenever it injects a challenge or block, regardless of
+    ///      which challenge variant (managed / JS / Turnstile / hCaptcha).
+    ///      This is the only signal we'd normally need, but older
+    ///      Cloudflare zones don't emit it — keep the fallbacks.
+    ///
+    ///   2. **`server: cloudflare` + non-JSON `content-type`.**
+    ///      A 401/403 served BY Cloudflare with HTML/text body is
+    ///      always a CF action, never an Anthropic one. Anthropic's
+    ///      true 401s come back with `application/json`.
+    ///
+    ///   3. **Body string match.** The legacy classic — covers any
+    ///      challenge HTML that lacks `cf-mitigated` AND somehow has
+    ///      a JSON content-type. Unlikely but cheap to keep.
+    private func isCloudflareChallenge(response: HTTPURLResponse,
+                                       body: Data) -> Bool {
+        if let mit = response.value(forHTTPHeaderField: "cf-mitigated"),
+           !mit.isEmpty {
+            return true
+        }
+        let server = (response.value(forHTTPHeaderField: "Server") ?? "").lowercased()
+        let ctype  = (response.value(forHTTPHeaderField: "Content-Type") ?? "").lowercased()
+        if server.contains("cloudflare") && !ctype.contains("application/json") {
+            return true
+        }
+        if let txt = String(data: body, encoding: .utf8) {
+            // Common substrings across CF challenge page variants.
+            let markers = [
+                "Just a moment",
+                "cf-challenge",
+                "Verify you are human",
+                "Checking your browser",
+                "challenges.cloudflare.com",
+            ]
+            for m in markers where txt.contains(m) { return true }
+        }
+        return false
     }
 }
