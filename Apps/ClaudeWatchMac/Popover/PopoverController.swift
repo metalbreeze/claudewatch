@@ -3,12 +3,11 @@ import SwiftUI
 import UsageCore
 
 @MainActor
-final class PopoverController {
+final class PopoverController: NSObject, NSPopoverDelegate {
     let popover = NSPopover()
     let ctx: AppContext
 
-    /// Seconds the pointer must stay outside the popover (with the
-    /// popover also not holding keyboard focus) before it closes.
+    /// Seconds the pointer must stay outside the popover before it closes.
     private static let autoHideAfter: TimeInterval = 10.0
     /// How often the idle check runs. Polling beats NSTrackingArea
     /// here: the popover rebuilds its SwiftUI content tree on every
@@ -33,6 +32,11 @@ final class PopoverController {
         // tabs doesn't animate the popover's outer frame.
         popover.contentSize = NSSize(width: 340, height: 470)
         popover.behavior = .transient
+        super.init()
+        // Delegate hook so every AppKit-initiated close — not just the
+        // ones we route through close() ourselves — tears down the
+        // idle timer and outside-click monitor. See popoverDidClose.
+        popover.delegate = self
         rebuildContent()
     }
 
@@ -52,10 +56,26 @@ final class PopoverController {
     }
 
     /// Single close path so the timer and monitor can never outlive the
-    /// popover, no matter which of the three dismissal triggers fired.
+    /// popover, no matter which dismissal trigger fired (outside click,
+    /// idle timeout, re-clicking the status item, or re-importing a
+    /// cURL from inside the popover). AppKit-initiated closes that
+    /// don't go through this method — Escape, `.transient` auto-close
+    /// on losing key to another window, right-click menu tracking, a
+    /// Space switch — are caught by popoverDidClose below instead.
     func close() {
         stopDismissalWatchers()
         popover.performClose(nil)
+    }
+
+    /// Covers every dismissal AppKit initiates on its own rather than
+    /// through close(): Escape while the popover is key, `.transient`
+    /// auto-close when another window (Settings, the cURL import
+    /// window reachable from the status-item right-click menu) takes
+    /// key, right-click menu tracking, a Space switch. Without this
+    /// hook those paths would leave the idle timer and outside-click
+    /// monitor running after the popover is already gone.
+    func popoverDidClose(_ notification: Notification) {
+        stopDismissalWatchers()
     }
 
     /// `.transient` alone doesn't dismiss this popover: in an
@@ -65,7 +85,13 @@ final class PopoverController {
     /// keyboard focus from whatever the user was doing — too rude for
     /// glance-at-a-number UI. So we watch for outside clicks ourselves.
     private func startDismissalWatchers() {
-        idleElapsed = 0
+        // Reset first: this can be called again (open → re-import →
+        // open) without an intervening close(), and overwriting a live
+        // idleTimer/outsideClickMonitor without tearing down the old
+        // ones first would orphan them — they'd keep running, keep
+        // mutating idleElapsed alongside the new ones, and keep firing
+        // for the rest of the app's lifetime.
+        stopDismissalWatchers()
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(
             matching: [.leftMouseDown, .rightMouseDown]
         ) { [weak self] _ in
@@ -88,18 +114,18 @@ final class PopoverController {
         }
     }
 
-    /// The pointer being inside the popover, or the popover holding
-    /// keyboard focus, both count as "the user is still using this".
-    /// The focus clause matters because clicking a control inside the
-    /// popover activates the app — without it, a user who clicked a
-    /// timeframe button and then moved the mouse off would get the
-    /// popover yanked mid-interaction.
+    /// The pointer being inside the popover counts as "the user is
+    /// still using this" and resets the idle clock. No separate
+    /// keyboard-focus check: every control in this popover (4
+    /// timeframe buttons, Refresh, Re-import) is pointer-driven and
+    /// there are no text fields, so the user can't be interacting with
+    /// it without the pointer being over it — pointer containment
+    /// alone already covers the mid-interaction case.
     private func tickIdle() {
         guard popover.isShown, let window = popover.contentViewController?.view.window else {
             return
         }
-        let pointerInside = window.frame.contains(NSEvent.mouseLocation)
-        if pointerInside || window.isKeyWindow {
+        if window.frame.contains(NSEvent.mouseLocation) {
             idleElapsed = 0
             return
         }
@@ -130,14 +156,15 @@ final class PopoverController {
             }
         }()
         // Closure the popover invokes when the user taps "Re-import
-        // cURL…" inside an error banner. We close the popover before
-        // opening the import window so the new window isn't covered
-        // by it (the popover is .transient and would dismiss itself
-        // on focus loss anyway, but explicit is clearer).
+        // cURL…" inside an error banner. This fires from a Button
+        // inside a *live, shown* popover (not before show), so it must
+        // go through close() — not popover.performClose(nil) directly
+        // — to tear down the idle timer and outside-click monitor too.
+        // We close before opening the import window so the new window
+        // isn't covered by it.
         let ctx = self.ctx
-        let popover = self.popover
-        let onReimport: () -> Void = { [weak controller] in
-            popover.performClose(nil)
+        let onReimport: () -> Void = { [weak self, weak controller] in
+            self?.close()
             CURLImportWindowController.show(ctx: ctx, onSuccess: {
                 Task { @MainActor in try? await controller?.pollOnce() }
             })
