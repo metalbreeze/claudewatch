@@ -13,6 +13,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             ctx = try AppContext()
             statusItem = StatusItemController()
+            // Registered once here — applicationDidFinishLaunching runs
+            // exactly once per app launch (an AppKit guarantee), unlike
+            // startPolling() below, which reruns on every cURL re-import.
+            // Registering it there would pile up a duplicate observer per
+            // re-import with no matching removeObserver.
+            NotificationCenter.default.addObserver(
+                forName: .menuBarDisplayOptionsChanged, object: nil, queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in self?.render() }
+            }
             // Wire menu actions early so they work even before login.
             statusItem.onSettings = { [weak self] in
                 guard let self else { return }
@@ -73,11 +83,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             timer.start()
             ctx.pollingTimer = timer
             popover = PopoverController(ctx: ctx)
-            NotificationCenter.default.addObserver(
-                forName: .menuBarDisplayOptionsChanged, object: nil, queue: .main
-            ) { [weak self] _ in
-                Task { @MainActor in self?.render() }
-            }
             statusItem.onClick = { [weak self] in
                 guard let self, let button = self.statusItem.item.button else { return }
                 self.popover?.toggle(from: button)

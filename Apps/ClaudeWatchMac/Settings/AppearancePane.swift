@@ -19,10 +19,15 @@ struct AppearancePane: View {
     @State private var showWeek = false
     @State private var showFable = true
     @State private var showLabels = true
-    /// False when the account has no Fable quota. The checkbox is
+    /// False only once we have positive evidence the account lacks a
+    /// Fable quota (a snapshot has arrived and its fractionFable was
+    /// nil). Before the first poll returns there is no snapshot yet —
+    /// that is "unknown", not "unavailable", so it defaults true and
+    /// leaves the checkbox enabled rather than stranding it disabled
+    /// until the user closes and reopens Settings. The checkbox is
     /// disabled rather than hidden: a user on a plan without Fable
     /// should be able to see that the option exists.
-    @State private var fableAvailable = false
+    @State private var fableAvailable = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -70,7 +75,11 @@ struct AppearancePane: View {
         showWeek   = (try? ctx.settings.getBool(.menuBarShowWeek,   default: d.showWeek))   ?? d.showWeek
         showFable  = (try? ctx.settings.getBool(.menuBarShowFable,  default: d.showFable))  ?? d.showFable
         showLabels = (try? ctx.settings.getBool(.menuBarShowLabels, default: d.showLabels)) ?? d.showLabels
-        fableAvailable = ctx.controller?.state.latest?.fractionFable != nil
+        // Only a snapshot we've actually seen can tell us Fable is absent.
+        // Before the first poll returns, `latest` is nil — that's "unknown",
+        // not "unavailable", and disabling on it strands the toggle until
+        // the user closes and reopens the pane.
+        fableAvailable = ctx.controller?.state.latest.map { $0.fractionFable != nil } ?? true
     }
 
     private func write(_ key: SettingsRepository.Key, _ value: Bool) {
