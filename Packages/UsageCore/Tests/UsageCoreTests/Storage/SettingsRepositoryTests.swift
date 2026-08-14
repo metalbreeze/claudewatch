@@ -16,4 +16,27 @@ final class SettingsRepositoryTests: XCTestCase {
         let repo = SettingsRepository(dbq: dbq)
         XCTAssertNil(try repo.get(.theme))
     }
+
+    func test_getBool_absentKey_returnsDefault() throws {
+        let dbq = try DatabaseQueue()
+        try Database.migrator.migrate(dbq)
+        let repo = SettingsRepository(dbq: dbq)
+        XCTAssertTrue(try repo.getBool(.menuBarShowFable, default: true))
+        XCTAssertFalse(try repo.getBool(.menuBarShowWeek, default: false))
+    }
+
+    func test_setBoolThenGetBool_roundTrips() throws {
+        let dbq = try DatabaseQueue()
+        try Database.migrator.migrate(dbq)
+        let repo = SettingsRepository(dbq: dbq)
+
+        // Writing false must read back false even when the default is
+        // true — this is the case a naive "any stored string is true"
+        // parse would get wrong.
+        try repo.setBool(.menuBarShow5h, false)
+        XCTAssertFalse(try repo.getBool(.menuBarShow5h, default: true))
+
+        try repo.setBool(.menuBarShow5h, true)
+        XCTAssertTrue(try repo.getBool(.menuBarShow5h, default: false))
+    }
 }
