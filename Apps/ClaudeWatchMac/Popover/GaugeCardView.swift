@@ -1,6 +1,9 @@
 import SwiftUI
 
-/// One of the two gauge cards at the top of the popover (5h / Week).
+/// One of the gauge cards at the top of the popover: 5h, Week, and —
+/// only when the account has that per-model quota — Fable. The Fable
+/// card is rendered conditionally by the caller (PopoverRootView), so
+/// most accounts see just the two always-on cards.
 ///
 /// Visual layering, from least to most prominent:
 ///

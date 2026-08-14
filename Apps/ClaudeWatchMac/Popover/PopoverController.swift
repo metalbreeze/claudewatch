@@ -75,6 +75,18 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     /// hook those paths would leave the idle timer and outside-click
     /// monitor running after the popover is already gone.
     func popoverDidClose(_ notification: Notification) {
+        // `popover.animates` defaults to true, so AppKit delivers this
+        // notification AFTER the close animation finishes — not at the
+        // moment the close was requested. If the user re-opens the
+        // popover (rapid status-item toggling) while that animation is
+        // still in flight, this is the STALE notification from the
+        // previous open arriving after startDismissalWatchers() already
+        // installed fresh watchers for the new open. Without this
+        // guard we'd tear those fresh watchers down, leaving the
+        // now-open popover with no idle timer and no outside-click
+        // monitor. `isShown` is false only when this really is the
+        // close it claims to be.
+        guard !popover.isShown else { return }
         stopDismissalWatchers()
     }
 

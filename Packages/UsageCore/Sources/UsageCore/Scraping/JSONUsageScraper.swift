@@ -26,30 +26,41 @@ public struct JSONUsageScraper: UsageScraper {
     private struct Response: Decodable {
         let five_hour: Window?
         let seven_day: Window?
-        /// Added by Anthropic around 2026-08. Optional so a response
-        /// from an older or regional deployment that lacks the key
-        /// decodes cleanly instead of tripping schemaDrift.
-        let limits: [Limit]?
 
         struct Window: Decodable {
             let utilization: Double
             let resets_at: Date?
         }
+    }
 
-        /// One entry of the `limits[]` array. Every field is optional
-        /// because Anthropic adds fields to this shape frequently and
-        /// we only care about four of them.
-        struct Limit: Decodable {
-            let kind: String?
-            let percent: Double?
-            let resets_at: Date?
-            let is_active: Bool?
-            let scope: Scope?
+    /// Mirrors just the `limits[]` key, decoded in a separate pass from
+    /// `Response` (see the `try?` decode in `fetchSnapshot`). Making the
+    /// property optional on `Response` only guards against the key being
+    /// *absent or null* — it does nothing for a type change *inside* an
+    /// entry (e.g. `percent` becomes a string, or one unrelated model's
+    /// `resets_at` becomes a date our strategy can't parse). Anthropic
+    /// appends to this array often, and a single malformed entry — for
+    /// any model, not just Fable — must not take the 5h/Week gauges
+    /// down with it. Decoding it separately means a drift here degrades
+    /// to "no Fable card" instead of `ScrapeError.schemaDrift` for the
+    /// whole snapshot.
+    private struct LimitsEnvelope: Decodable {
+        let limits: [Limit]?
+    }
 
-            struct Scope: Decodable {
-                let model: Model?
-                struct Model: Decodable { let display_name: String? }
-            }
+    /// One entry of the `limits[]` array. Every field is optional
+    /// because Anthropic adds fields to this shape frequently and
+    /// we only care about four of them.
+    private struct Limit: Decodable {
+        let kind: String?
+        let percent: Double?
+        let resets_at: Date?
+        let is_active: Bool?
+        let scope: Scope?
+
+        struct Scope: Decodable {
+            let model: Model?
+            struct Model: Decodable { let display_name: String? }
         }
     }
 
@@ -118,11 +129,21 @@ public struct JSONUsageScraper: UsageScraper {
             let used5h = Int(((r.five_hour?.utilization ?? 0) * 100).rounded())
             let usedWeek = Int(((r.seven_day?.utilization ?? 0) * 100).rounded())
 
+            // Decoded independently of `r` via `try?`: a schema drift
+            // anywhere inside `limits[]` (wrong type on `percent`,
+            // `scope.model` no longer an object, `limits` itself no
+            // longer an array, an unparseable `resets_at` on ANY
+            // entry) simply yields `nil` here rather than throwing —
+            // see the doc comment on `LimitsEnvelope`. 5h/Week above
+            // already finished decoding from the same `Response`
+            // parse and are unaffected.
+            let limits = (try? dec.decode(LimitsEnvelope.self, from: data))?.limits
+
             // Fable is a per-model weekly limit. Match on BOTH the kind
             // and the model display name — matching kind alone would
             // pick up any future scoped limit (Opus, Cowork, …) and
             // label it Fable.
-            let fable = r.limits?.first {
+            let fable = limits?.first {
                 $0.kind == "weekly_scoped"
                     && $0.scope?.model?.display_name == Self.fableDisplayName
             }
