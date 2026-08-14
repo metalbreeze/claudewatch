@@ -17,6 +17,11 @@ import UsageCore
 enum ChartPalette {
     static let actual5h = Color.green
     static let actualWeek = Color.teal
+    /// Fable's identity color. Green (5h) and teal (week) are taken;
+    /// purple stays legible in both light and dark popovers and
+    /// carries no Anthropic brand association. Used only on the gauge
+    /// card — Fable is not plotted on the chart.
+    static let actualFable = Color.purple
     static let forecast = Color.gray.opacity(0.7)
     static let resetBoundary = Color.indigo.opacity(0.6)
 }

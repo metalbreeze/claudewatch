@@ -77,10 +77,11 @@
 "popover.header.title" = "USO DE CLAUDE";
 "popover.gauge.5h" = "5h";
 "popover.gauge.week" = "Semana";
+"popover.gauge.fable" = "Fable";
 
 /* ── Subtítulos de reinicio ── */
-"popover.reset.resetsIn %lld %lld" = "se reinicia en %lldh %lldm";
-"popover.reset.resetsOn %@" = "se reinicia el %@";
+"popover.reset.resetsIn %lld %lld" = "%lldh%lldm";
+"popover.reset.resetsOn %@" = "%@";
 
 /* ── Etiquetas de error ── */
 "popover.error.lastPollFailed" = "Último sondeo fallido";

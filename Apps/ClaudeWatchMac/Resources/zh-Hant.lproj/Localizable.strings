@@ -77,10 +77,11 @@
 "popover.header.title" = "CLAUDE 用量";
 "popover.gauge.5h" = "5小時";
 "popover.gauge.week" = "本週";
+"popover.gauge.fable" = "Fable";
 
 /* ── 重置說明 ── */
-"popover.reset.resetsIn %lld %lld" = "%lld小時%lld分鐘後重置";
-"popover.reset.resetsOn %@" = "%@ 重置";
+"popover.reset.resetsIn %lld %lld" = "%lld時%lld分";
+"popover.reset.resetsOn %@" = "%@";
 
 /* ── 錯誤標籤 ── */
 "popover.error.lastPollFailed" = "上次輪詢失敗";

@@ -77,10 +77,11 @@
 "popover.header.title" = "CLAUDE 사용량";
 "popover.gauge.5h" = "5시간";
 "popover.gauge.week" = "주간";
+"popover.gauge.fable" = "Fable";
 
 /* ── 리셋 설명 ── */
-"popover.reset.resetsIn %lld %lld" = "%lld시간 %lld분 후 리셋";
-"popover.reset.resetsOn %@" = "%@에 리셋";
+"popover.reset.resetsIn %lld %lld" = "%lld시간 %lld분";
+"popover.reset.resetsOn %@" = "%@";
 
 /* ── 오류 레이블 ── */
 "popover.error.lastPollFailed" = "마지막 폴링 실패";

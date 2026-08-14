@@ -73,6 +73,11 @@ struct PopoverRootView: View {
                 // fill ↔ green line; teal "WEEK" + teal fill ↔ teal line.
                 // Danger is encoded separately in the percentage number
                 // (yellow ≥ 75%, red ≥ 90%) — see GaugeCardView.
+                //
+                // Fable is a per-model weekly quota that only some
+                // accounts have. When absent, the card is omitted and
+                // the other two expand back to full width on their own
+                // (each card is frame(maxWidth: .infinity)).
                 GaugeCardView(label: String(localized: "popover.gauge.5h", defaultValue: "5h"),
                     percent: controller.state.latest?.fraction5h ?? 0,
                     resetCaption: resetCaption(controller.state.latest?.resetTime5h),
@@ -81,6 +86,13 @@ struct PopoverRootView: View {
                     percent: controller.state.latest?.fractionWeek ?? 0,
                     resetCaption: weeklyResetCaption(controller.state.latest?.resetTimeWeek),
                     tint: ChartPalette.actualWeek)
+                if let fable = controller.state.latest?.fractionFable {
+                    GaugeCardView(label: String(localized: "popover.gauge.fable", defaultValue: "Fable"),
+                        percent: fable,
+                        resetCaption: weeklyResetCaption(controller.state.latest?.resetTimeFable),
+                        tint: ChartPalette.actualFable,
+                        isActive: controller.state.latest?.fableIsActive ?? false)
+                }
             }
 
             TimeframePicker(selection: $timeframe)

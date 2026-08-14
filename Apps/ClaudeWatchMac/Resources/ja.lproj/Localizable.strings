@@ -77,10 +77,11 @@
 "popover.header.title" = "CLAUDE 使用量";
 "popover.gauge.5h" = "5時間";
 "popover.gauge.week" = "週間";
+"popover.gauge.fable" = "Fable";
 
 /* ── リセットキャプション ── */
-"popover.reset.resetsIn %lld %lld" = "%lld時間%lld分後にリセット";
-"popover.reset.resetsOn %@" = "%@ にリセット";
+"popover.reset.resetsIn %lld %lld" = "%lld時間%lld分";
+"popover.reset.resetsOn %@" = "%@";
 
 /* ── エラーラベル ── */
 "popover.error.lastPollFailed" = "最後のポーリングに失敗しました";

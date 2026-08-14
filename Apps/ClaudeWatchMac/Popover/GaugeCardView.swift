@@ -26,6 +26,12 @@ struct GaugeCardView: View {
     /// fill bar color. Sourced from `ChartPalette` so all UI surfaces
     /// stay coherent.
     let tint: Color
+    /// Anthropic's `is_active` flag for this limit — true when this is
+    /// the quota currently throttling the account. Drawn as a 1 pt
+    /// border because the danger colouring alone doesn't say it: a
+    /// scoped limit at 99% blocks one model, not the whole account,
+    /// and the user needs to know which gauge is the live constraint.
+    var isActive: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -45,6 +51,10 @@ struct GaugeCardView: View {
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.secondary.opacity(0.1))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(isActive ? tint : Color.clear, lineWidth: 1)
         )
     }
 

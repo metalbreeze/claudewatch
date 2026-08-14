@@ -77,10 +77,11 @@
 "popover.header.title" = "CLAUDE USAGE";
 "popover.gauge.5h" = "5h";
 "popover.gauge.week" = "Week";
+"popover.gauge.fable" = "Fable";
 
 /* ── Popover reset captions ── */
-"popover.reset.resetsIn %lld %lld" = "resets in %lldh %lldm";
-"popover.reset.resetsOn %@" = "resets %@";
+"popover.reset.resetsIn %lld %lld" = "%lldh%lldm";
+"popover.reset.resetsOn %@" = "%@";
 
 /* ── Popover error labels ── */
 "popover.error.lastPollFailed" = "Last poll failed";
