@@ -8,6 +8,7 @@
 "status.tooltip.sessionExpired" = "Session expirée — ouvrez l'app pour vous reconnecter";
 "status.tooltip.noData" = "Aucune donnée";
 "status.tooltip.usage %lld %lld" = "5h : %lld%% • Semaine : %lld%%";
+"status.tooltip.usageWithFable %lld %lld %lld" = "5h : %lld%% • Semaine : %lld%% • Fable : %lld%%";
 
 /* ── Menu contextuel ── */
 "menu.importFromCURL" = "Importer depuis cURL…";
@@ -51,6 +52,11 @@
 "settings.appearance.themeLight" = "Clair";
 "settings.appearance.themeDark" = "Sombre";
 "settings.appearance.themeNote" = "Le thème ne s'applique qu'au menu déroulant. Effectif au prochain clic sur l'icône de la barre des menus.";
+"settings.appearance.menuBarSection" = "Barre des menus";
+"settings.appearance.menuBarShow5h" = "Afficher l'utilisation sur 5 h";
+"settings.appearance.menuBarShowWeek" = "Afficher l'utilisation hebdomadaire";
+"settings.appearance.menuBarShowFable" = "Afficher l'utilisation de Fable";
+"settings.appearance.menuBarShowLabels" = "Afficher les libellés (5h / 1w / F)";
 
 /* ── Panneau de compte ── */
 "settings.account.signedInAs %@" = "Connecté en tant que %@";

@@ -8,6 +8,7 @@
 "status.tooltip.sessionExpired" = "Session expired — open app to re-login";
 "status.tooltip.noData" = "No data";
 "status.tooltip.usage %lld %lld" = "5h: %lld%% • Week: %lld%%";
+"status.tooltip.usageWithFable %lld %lld %lld" = "5h: %lld%% • Week: %lld%% • Fable: %lld%%";
 
 /* ── Right-click menu ── */
 "menu.importFromCURL" = "Import from cURL…";
@@ -51,6 +52,11 @@
 "settings.appearance.themeLight" = "Light";
 "settings.appearance.themeDark" = "Dark";
 "settings.appearance.themeNote" = "Theme override applies to the popover. Takes effect next time you click the menu bar icon.";
+"settings.appearance.menuBarSection" = "Menu bar";
+"settings.appearance.menuBarShow5h" = "Show 5-hour usage";
+"settings.appearance.menuBarShowWeek" = "Show weekly usage";
+"settings.appearance.menuBarShowFable" = "Show Fable usage";
+"settings.appearance.menuBarShowLabels" = "Show labels (5h / 1w / F)";
 
 /* ── Account pane ── */
 "settings.account.signedInAs %@" = "Signed in as %@";

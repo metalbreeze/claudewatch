@@ -8,6 +8,7 @@
 "status.tooltip.sessionExpired" = "工作階段已過期 — 開啟應用程式重新登入";
 "status.tooltip.noData" = "尚無資料";
 "status.tooltip.usage %lld %lld" = "5小時：%lld%% • 本週：%lld%%";
+"status.tooltip.usageWithFable %lld %lld %lld" = "5小時：%lld%% • 本週：%lld%% • Fable：%lld%%";
 
 /* ── 右鍵選單 ── */
 "menu.importFromCURL" = "從 cURL 匯入…";
@@ -51,6 +52,11 @@
 "settings.appearance.themeLight" = "淺色";
 "settings.appearance.themeDark" = "深色";
 "settings.appearance.themeNote" = "主題覆寫只作用於彈出視窗。下次點擊選單列圖示時生效。";
+"settings.appearance.menuBarSection" = "選單列";
+"settings.appearance.menuBarShow5h" = "顯示 5 小時用量";
+"settings.appearance.menuBarShowWeek" = "顯示每週用量";
+"settings.appearance.menuBarShowFable" = "顯示 Fable 用量";
+"settings.appearance.menuBarShowLabels" = "顯示名稱（5h / 1w / F）";
 
 /* ── 帳戶面板 ── */
 "settings.account.signedInAs %@" = "已登入：%@";

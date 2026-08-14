@@ -8,6 +8,7 @@
 "status.tooltip.sessionExpired" = "セッションが期限切れです — アプリを開いて再ログインしてください";
 "status.tooltip.noData" = "データなし";
 "status.tooltip.usage %lld %lld" = "5時間：%lld%% • 週間：%lld%%";
+"status.tooltip.usageWithFable %lld %lld %lld" = "5時間：%lld%% • 週間：%lld%% • Fable：%lld%%";
 
 /* ── 右クリックメニュー ── */
 "menu.importFromCURL" = "cURL からインポート…";
@@ -51,6 +52,11 @@
 "settings.appearance.themeLight" = "ライト";
 "settings.appearance.themeDark" = "ダーク";
 "settings.appearance.themeNote" = "このテーマ設定はポップオーバーにのみ適用されます。メニューバーアイコンを次にクリックしたときに反映されます。";
+"settings.appearance.menuBarSection" = "メニューバー";
+"settings.appearance.menuBarShow5h" = "5時間の使用量を表示";
+"settings.appearance.menuBarShowWeek" = "週間の使用量を表示";
+"settings.appearance.menuBarShowFable" = "Fable の使用量を表示";
+"settings.appearance.menuBarShowLabels" = "ラベルを表示（5h / 1w / F）";
 
 /* ── アカウントパネル ── */
 "settings.account.signedInAs %@" = "%@ でログイン中";

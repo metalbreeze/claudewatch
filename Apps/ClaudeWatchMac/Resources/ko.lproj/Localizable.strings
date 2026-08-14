@@ -8,6 +8,7 @@
 "status.tooltip.sessionExpired" = "세션이 만료됨 — 앱을 열어 다시 로그인하세요";
 "status.tooltip.noData" = "데이터 없음";
 "status.tooltip.usage %lld %lld" = "5시간: %lld%% • 주간: %lld%%";
+"status.tooltip.usageWithFable %lld %lld %lld" = "5시간: %lld%% • 주간: %lld%% • Fable: %lld%%";
 
 /* ── 우클릭 메뉴 ── */
 "menu.importFromCURL" = "cURL에서 가져오기…";
@@ -51,6 +52,11 @@
 "settings.appearance.themeLight" = "라이트";
 "settings.appearance.themeDark" = "다크";
 "settings.appearance.themeNote" = "테마 재정의는 팝오버에만 적용됩니다. 다음에 메뉴 막대 아이콘을 클릭할 때 반영됩니다.";
+"settings.appearance.menuBarSection" = "메뉴 막대";
+"settings.appearance.menuBarShow5h" = "5시간 사용량 표시";
+"settings.appearance.menuBarShowWeek" = "주간 사용량 표시";
+"settings.appearance.menuBarShowFable" = "Fable 사용량 표시";
+"settings.appearance.menuBarShowLabels" = "레이블 표시 (5h / 1w / F)";
 
 /* ── 계정 패널 ── */
 "settings.account.signedInAs %@" = "%@(으)로 로그인됨";

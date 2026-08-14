@@ -73,6 +73,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             timer.start()
             ctx.pollingTimer = timer
             popover = PopoverController(ctx: ctx)
+            NotificationCenter.default.addObserver(
+                forName: .menuBarDisplayOptionsChanged, object: nil, queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in self?.render() }
+            }
             statusItem.onClick = { [weak self] in
                 guard let self, let button = self.statusItem.item.button else { return }
                 self.popover?.toggle(from: button)
@@ -124,15 +129,44 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func render() {
         guard let snap = ctx.controller?.state.latest else {
+            // Distinct from "⌬" with no digits, which means the user
+            // switched every segment off. This one means the first poll
+            // hasn't come back yet.
             statusItem.setText("⌬ —", tooltip: String(localized: "status.tooltip.noData",
                 defaultValue: "No data"))
             return
         }
+        let segments = MenuBarFormatter.segments(snapshot: snap, options: menuBarOptions())
+        let title = segments.isEmpty ? "⌬" : "⌬ \(segments)"
+
+        // The tooltip always carries all three values, whatever the
+        // menu bar is set to show: the bar is what the user chose to
+        // watch, the tooltip is the full picture.
         let pct = Int(snap.fraction5h * 100)
         let weekPct = Int(snap.fractionWeek * 100)
-        statusItem.setText(
-            "⌬ \(pct)%",
-            tooltip: String(localized: "status.tooltip.usage \(pct) \(weekPct)" as String.LocalizationValue))
+        let tooltip: String
+        if let fable = snap.fractionFable {
+            let fablePct = Int(fable * 100)
+            tooltip = String(localized:
+                "status.tooltip.usageWithFable \(pct) \(weekPct) \(fablePct)"
+                as String.LocalizationValue)
+        } else {
+            tooltip = String(localized:
+                "status.tooltip.usage \(pct) \(weekPct)" as String.LocalizationValue)
+        }
+        statusItem.setText(title, tooltip: tooltip)
+    }
+
+    /// Reads the four persisted menu bar checkboxes. Falls back to
+    /// `MenuBarDisplayOptions.default` field by field, so a database
+    /// that predates these keys still renders sensibly.
+    private func menuBarOptions() -> MenuBarDisplayOptions {
+        let d = MenuBarDisplayOptions.default
+        return MenuBarDisplayOptions(
+            show5h:     (try? ctx.settings.getBool(.menuBarShow5h,     default: d.show5h))     ?? d.show5h,
+            showWeek:   (try? ctx.settings.getBool(.menuBarShowWeek,   default: d.showWeek))   ?? d.showWeek,
+            showFable:  (try? ctx.settings.getBool(.menuBarShowFable,  default: d.showFable))  ?? d.showFable,
+            showLabels: (try? ctx.settings.getBool(.menuBarShowLabels, default: d.showLabels)) ?? d.showLabels)
     }
 }
 
@@ -141,4 +175,13 @@ struct NotificationSinkAdapter: AlertSink {
     func deliver(_ k: AlertKind, snapshot s: UsageSnapshot, forecast f: ForecastResult?) async {
         await dispatcher.deliver(k, snapshot: s, forecast: f)
     }
+}
+
+extension Notification.Name {
+    /// Posted by AppearancePane after any menu bar checkbox changes.
+    ///
+    /// Without it the menu bar would only pick up a new setting on the
+    /// next poll — up to 90 seconds of staring at a checkbox that
+    /// appears to do nothing.
+    static let menuBarDisplayOptionsChanged = Notification.Name("menuBarDisplayOptionsChanged")
 }
