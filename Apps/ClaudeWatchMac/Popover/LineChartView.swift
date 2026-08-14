@@ -19,8 +19,9 @@ enum ChartPalette {
     static let actualWeek = Color.teal
     /// Fable's identity color. Green (5h) and teal (week) are taken;
     /// purple stays legible in both light and dark popovers and
-    /// carries no Anthropic brand association. Used only on the gauge
-    /// card — Fable is not plotted on the chart.
+    /// carries no Anthropic brand association. Used by the gauge card
+    /// and by the Fable line on the 1w chart, so the two surfaces read
+    /// as the same metric.
     static let actualFable = Color.purple
     static let forecast = Color.gray.opacity(0.7)
     static let resetBoundary = Color.indigo.opacity(0.6)
@@ -130,6 +131,27 @@ struct LineChartView: View {
                         y: .value("pct", s.fractionWeek * 100),
                         series: .value("kind", "actualWeek"))
                     .foregroundStyle(ChartPalette.actualWeek)
+                    .lineStyle(StrokeStyle(lineWidth: 1.5))
+                }
+            }
+
+            // Fable weekly quota — purple, gated on the same condition
+            // as the weekly line because Fable is also a weekly window;
+            // on an 8h or 24h axis it would be a flat line saying
+            // nothing.
+            //
+            // Snapshots predating the Fable migration carry a nil
+            // fractionFable and are skipped, so the line simply starts
+            // where the data starts. Zero-filling them would draw a
+            // flat run at 0% — a claim that the quota went unused,
+            // which is false rather than merely unknown.
+            if showsWeekLine {
+                ForEach(visible.filter { $0.fractionFable != nil }, id: \.timestamp) { s in
+                    LineMark(
+                        x: .value("t", s.timestamp),
+                        y: .value("pct", (s.fractionFable ?? 0) * 100),
+                        series: .value("kind", "actualFable"))
+                    .foregroundStyle(ChartPalette.actualFable)
                     .lineStyle(StrokeStyle(lineWidth: 1.5))
                 }
             }
