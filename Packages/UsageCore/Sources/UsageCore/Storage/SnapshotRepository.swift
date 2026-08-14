@@ -14,13 +14,17 @@ public struct SnapshotRepository {
             try db.execute(sql: """
                 INSERT INTO snapshots
                 (device_id, ts, plan, used_5h, ceiling_5h, reset_5h,
-                 used_week, ceiling_week, reset_week, source_version, synced_to_cloud)
-                VALUES (?,?,?,?,?,?,?,?,?,?,0)
+                 used_week, ceiling_week, reset_week, source_version, synced_to_cloud,
+                 used_fable, reset_fable, fable_is_active)
+                VALUES (?,?,?,?,?,?,?,?,?,?,0,?,?,?)
             """, arguments: [
                 deviceID, Int(s.timestamp.timeIntervalSince1970), s.plan.displayName,
                 s.used5h, s.ceiling5h, Int(s.resetTime5h.timeIntervalSince1970),
                 s.usedWeek, s.ceilingWeek, Int(s.resetTimeWeek.timeIntervalSince1970),
-                s.sourceVersion
+                s.sourceVersion,
+                s.usedFable,
+                s.resetTimeFable.map { Int($0.timeIntervalSince1970) },
+                s.fableIsActive
             ])
         }
     }
@@ -43,7 +47,13 @@ public struct SnapshotRepository {
     }
 
     private static func fromRow(_ r: Row) -> UsageSnapshot {
-        UsageSnapshot(
+        // Rows written before migration v2 have NULL in the three
+        // fable columns; GRDB's optional subscript yields nil, which
+        // is exactly what "this account has no Fable limit" means to
+        // every consumer.
+        let resetFable: Date? = (r["reset_fable"] as Int?)
+            .map { Date(timeIntervalSince1970: TimeInterval($0)) }
+        return UsageSnapshot(
             timestamp: Date(timeIntervalSince1970: r["ts"]),
             plan: Plan(rawString: r["plan"]),
             used5h: r["used_5h"], ceiling5h: r["ceiling_5h"],
@@ -51,7 +61,10 @@ public struct SnapshotRepository {
             usedWeek: r["used_week"], ceilingWeek: r["ceiling_week"],
             resetTimeWeek: Date(timeIntervalSince1970: r["reset_week"]),
             sourceVersion: r["source_version"],
-            raw: Data()
+            raw: Data(),
+            usedFable: r["used_fable"],
+            resetTimeFable: resetFable,
+            fableIsActive: r["fable_is_active"] ?? false
         )
     }
 }

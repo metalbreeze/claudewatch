@@ -47,6 +47,22 @@ public enum Database {
                 );
             """)
         }
+        // Fable is a per-model weekly quota Anthropic began reporting
+        // in 2026-08. Nullable because not every account has one, and
+        // because every row written before this migration genuinely
+        // has no value — defaulting to 0 would render as "0% used"
+        // instead of "no such limit".
+        //
+        // snapshots_5min is deliberately NOT extended: that rollup
+        // table feeds long-range chart aggregation and we don't chart
+        // Fable.
+        m.registerMigration("v2") { db in
+            try db.execute(sql: """
+                ALTER TABLE snapshots ADD COLUMN used_fable INTEGER;
+                ALTER TABLE snapshots ADD COLUMN reset_fable INTEGER;
+                ALTER TABLE snapshots ADD COLUMN fable_is_active INTEGER NOT NULL DEFAULT 0;
+            """)
+        }
         return m
     }
 

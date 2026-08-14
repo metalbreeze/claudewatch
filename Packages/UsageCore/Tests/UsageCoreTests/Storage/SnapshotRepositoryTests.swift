@@ -34,4 +34,42 @@ final class SnapshotRepositoryTests: XCTestCase {
             usedWeek: 5000, ceilingWeek: 1_000_000, resetTimeWeek: ts.addingTimeInterval(86400 * 5),
             sourceVersion: "json-v1", raw: Data())
     }
+
+    func test_insertAndFetch_roundTripsFableFields() throws {
+        let repo = SnapshotRepository(dbq: dbq, deviceID: "dev")
+        let now = Date(timeIntervalSince1970: 1_770_000_000)
+        let fableReset = Date(timeIntervalSince1970: 1_770_050_000)
+        let snap = UsageSnapshot(
+            timestamp: now, plan: .pro,
+            used5h: 2600, ceiling5h: 10_000, resetTime5h: now.addingTimeInterval(3600),
+            usedWeek: 6900, ceilingWeek: 10_000, resetTimeWeek: now.addingTimeInterval(86_400),
+            sourceVersion: "json-v2", raw: Data(),
+            usedFable: 9900, resetTimeFable: fableReset, fableIsActive: true)
+        try repo.insert(snap)
+
+        let got = try repo.mostRecent()
+        XCTAssertEqual(got?.usedFable, 9900)
+        let gotResetFable = try XCTUnwrap(got?.resetTimeFable?.timeIntervalSince1970)
+        XCTAssertEqual(gotResetFable, fableReset.timeIntervalSince1970, accuracy: 1)
+        XCTAssertEqual(got?.fableIsActive, true)
+    }
+
+    func test_insertWithoutFable_readsBackAsNil() throws {
+        // Mirrors both a Fable-less account AND any row written by a
+        // build predating migration v2.
+        let repo = SnapshotRepository(dbq: dbq, deviceID: "dev")
+        let now = Date(timeIntervalSince1970: 1_770_000_000)
+        let snap = UsageSnapshot(
+            timestamp: now, plan: .pro,
+            used5h: 2600, ceiling5h: 10_000, resetTime5h: now.addingTimeInterval(3600),
+            usedWeek: 6900, ceilingWeek: 10_000, resetTimeWeek: now.addingTimeInterval(86_400),
+            sourceVersion: "json-v2", raw: Data())
+        try repo.insert(snap)
+
+        let got = try repo.mostRecent()
+        XCTAssertNotNil(got)
+        XCTAssertNil(got?.usedFable)
+        XCTAssertNil(got?.resetTimeFable)
+        XCTAssertEqual(got?.fableIsActive, false)
+    }
 }
