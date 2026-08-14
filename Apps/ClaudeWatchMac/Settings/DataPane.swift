@@ -41,10 +41,20 @@ struct DataPane: View {
         // Keep filename in English/Latin — not localized per spec.
         panel.nameFieldStringValue = "claude-watch.csv"
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        var csv = "timestamp,used_5h,ceiling_5h,used_week,ceiling_week,plan\n"
+        // used_fable is on the same 0–10000 scale as the other two windows.
+        // It is written as an EMPTY field, never 0, when the account has no
+        // Fable quota or the row predates the migration that began recording
+        // it — a 0 would claim the quota went unused, which is a different
+        // fact from "there was no such quota". Spreadsheets and pandas both
+        // read an empty CSV field as missing, which is what it is.
+        //
+        // There is no ceiling_fable column because the ceiling is a fixed
+        // 10000 for this window, not a stored per-row value.
+        var csv = "timestamp,used_5h,ceiling_5h,used_week,ceiling_week,used_fable,fable_is_active,plan\n"
         if let arr = try? ctx.snapshots.fetchRecent(within: 30 * 86400) {
             for s in arr {
-                csv += "\(Int(s.timestamp.timeIntervalSince1970)),\(s.used5h),\(s.ceiling5h),\(s.usedWeek),\(s.ceilingWeek),\(s.plan.displayName)\n"
+                let fable = s.usedFable.map(String.init) ?? ""
+                csv += "\(Int(s.timestamp.timeIntervalSince1970)),\(s.used5h),\(s.ceiling5h),\(s.usedWeek),\(s.ceilingWeek),\(fable),\(s.fableIsActive ? 1 : 0),\(s.plan.displayName)\n"
             }
         }
         try? csv.write(to: url, atomically: true, encoding: .utf8)

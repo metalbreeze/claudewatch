@@ -22,14 +22,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 forName: .menuBarDisplayOptionsChanged, object: nil, queue: .main
             ) { [weak self] _ in
                 Task { @MainActor in
-                    // Only repaint when there's actually a snapshot. Without
-                    // one the status item is showing something more specific
-                    // than this observer knows about — the "⌬ ⏳ Right-click
-                    // → Import from cURL…" onboarding hint, or a "⌬ ⚠"
-                    // error — and render()'s no-data branch would overwrite
-                    // it with a less useful "No data". In the pre-import
-                    // case nothing would ever restore it, since polling
-                    // isn't running yet.
+                    // Only repaint once a snapshot exists. Before the first
+                    // successful poll the status item shows the "⌬ ⏳
+                    // Right-click → Import from cURL…" onboarding hint, and
+                    // render()'s no-data branch would replace it with a less
+                    // useful "No data" — permanently, since polling isn't
+                    // running yet and nothing else would restore it.
+                    //
+                    // Scope, precisely: this guard protects the pre-first-
+                    // success states only. `state.latest` is assigned on
+                    // success and never cleared on failure, so once any poll
+                    // has succeeded it stays non-nil for the process's life.
+                    // A settings toggle during a later "⌬ ⚠" error therefore
+                    // still repaints from the stale last-known-good snapshot,
+                    // briefly hiding the warning until the next failed poll
+                    // (≤ 90 s) restores it. That was equally true before this
+                    // guard existed; fixing it means clearing `latest` on
+                    // failure, which is a change to polling semantics, not to
+                    // this observer.
                     guard self?.ctx.controller?.state.latest != nil else { return }
                     self?.render()
                 }
