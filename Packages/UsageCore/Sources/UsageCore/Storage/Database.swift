@@ -52,16 +52,39 @@ public enum Database {
         // because every row written before this migration genuinely
         // has no value — defaulting to 0 would render as "0% used"
         // instead of "no such limit".
-        //
-        // snapshots_5min is deliberately NOT extended: that rollup
-        // table feeds long-range chart aggregation and we don't chart
-        // Fable.
         m.registerMigration("v2") { db in
             try db.execute(sql: """
                 ALTER TABLE snapshots ADD COLUMN used_fable INTEGER;
                 ALTER TABLE snapshots ADD COLUMN reset_fable INTEGER;
                 ALTER TABLE snapshots ADD COLUMN fable_is_active INTEGER NOT NULL DEFAULT 0;
             """)
+        }
+        // Drop snapshots_5min. It was the storage half of a three-tier
+        // retention design from the original 2026-04-30 spec: raw 90 s
+        // rows for 7 days, 5-minute averages for 7–30 days, nothing
+        // beyond. Neither half ever shipped — RetentionJob (the writer)
+        // was never called, and SnapshotRepository never grew the
+        // read-side branch that was supposed to query this table past
+        // the 7-day mark. It has held 0 rows since the day it was
+        // created.
+        //
+        // The design is now actively wrong, not merely unused: the 1-month
+        // heatmap added in 2026-08 reads 28 days of RAW snapshots, so the
+        // 7-day raw retention this table exists to enable would delete
+        // three weeks of the data that feature depends on. Anyone who
+        // wires up retention in future must redesign the windows first,
+        // and would want Fable columns here too — i.e. they would not
+        // reuse this schema. Keeping an empty table shaped by a
+        // superseded plan only invites that mistake.
+        //
+        // v1 is left alone rather than edited. Migrations are immutable
+        // history: a fresh install creates the table in v1 and drops it
+        // here, which costs microseconds and keeps every recorded
+        // migration a truthful account of what the schema did. Rewriting
+        // v1 would make the history lie about a database that already
+        // exists on disk.
+        m.registerMigration("v3") { db in
+            try db.execute(sql: "DROP TABLE IF EXISTS snapshots_5min")
         }
         return m
     }
