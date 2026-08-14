@@ -15,10 +15,10 @@ import UsageCore
 struct AppearancePane: View {
     let ctx: AppContext
     @State private var theme: String = "auto"
-    @State private var show5h = true
-    @State private var showWeek = false
-    @State private var showFable = true
-    @State private var showLabels = true
+    @State private var show5h = MenuBarDisplayOptions.default.show5h
+    @State private var showWeek = MenuBarDisplayOptions.default.showWeek
+    @State private var showFable = MenuBarDisplayOptions.default.showFable
+    @State private var showLabels = MenuBarDisplayOptions.default.showLabels
     /// False only once we have positive evidence the account lacks a
     /// Fable quota (a snapshot has arrived and its fractionFable was
     /// nil). Before the first poll returns there is no snapshot yet —

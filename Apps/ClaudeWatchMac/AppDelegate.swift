@@ -21,7 +21,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NotificationCenter.default.addObserver(
                 forName: .menuBarDisplayOptionsChanged, object: nil, queue: .main
             ) { [weak self] _ in
-                Task { @MainActor in self?.render() }
+                Task { @MainActor in
+                    // Only repaint when there's actually a snapshot. Without
+                    // one the status item is showing something more specific
+                    // than this observer knows about — the "⌬ ⏳ Right-click
+                    // → Import from cURL…" onboarding hint, or a "⌬ ⚠"
+                    // error — and render()'s no-data branch would overwrite
+                    // it with a less useful "No data". In the pre-import
+                    // case nothing would ever restore it, since polling
+                    // isn't running yet.
+                    guard self?.ctx.controller?.state.latest != nil else { return }
+                    self?.render()
+                }
             }
             // Wire menu actions early so they work even before login.
             statusItem.onSettings = { [weak self] in
