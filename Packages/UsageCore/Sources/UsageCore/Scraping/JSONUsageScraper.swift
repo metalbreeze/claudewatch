@@ -10,22 +10,54 @@ public struct JSONUsageScraper: UsageScraper {
         self.endpoint = endpoint; self.cookies = cookies; self.session = session
     }
 
-    /// Real shape of `claude.ai/api/organizations/{org_id}/usage` (observed
-    /// 2026-04-30). Anthropic exposes utilization as a percentage (0–100)
-    /// rather than raw token counts. We fold both into our snapshot's
-    /// `used / ceiling` model by setting ceiling = 10000 and storing
+    /// Real shape of `claude.ai/api/organizations/{org_id}/usage`
+    /// (observed 2026-04-30, extended 2026-08-13). Anthropic exposes
+    /// utilization as a percentage (0–100) rather than raw token
+    /// counts. We fold that into our snapshot's `used / ceiling` model
+    /// by setting ceiling = 10000 and storing
     /// `used = round(utilization * 100)` so 0.01% of precision is kept.
-    /// The JSON also includes per-model windows (sonnet/opus/oauth_apps/
-    /// cowork/omelette) and an `extra_usage` block that we ignore for
-    /// the v1 product surface.
+    ///
+    /// The 2026-08 revision added a `limits[]` array that supersedes
+    /// the legacy per-model codename fields (`seven_day_opus`,
+    /// `nimbus_quill`, `tangelo`, …) — those are now null even for
+    /// accounts that do have per-model limits. We read the Fable
+    /// weekly limit out of `limits[]`; the codename fields, `spend`,
+    /// and `extra_usage` remain ignored.
     private struct Response: Decodable {
         let five_hour: Window?
         let seven_day: Window?
+        /// Added by Anthropic around 2026-08. Optional so a response
+        /// from an older or regional deployment that lacks the key
+        /// decodes cleanly instead of tripping schemaDrift.
+        let limits: [Limit]?
+
         struct Window: Decodable {
             let utilization: Double
             let resets_at: Date?
         }
+
+        /// One entry of the `limits[]` array. Every field is optional
+        /// because Anthropic adds fields to this shape frequently and
+        /// we only care about four of them.
+        struct Limit: Decodable {
+            let kind: String?
+            let percent: Double?
+            let resets_at: Date?
+            let is_active: Bool?
+            let scope: Scope?
+
+            struct Scope: Decodable {
+                let model: Model?
+                struct Model: Decodable { let display_name: String? }
+            }
+        }
     }
+
+    /// Display name Anthropic uses for the Fable model in
+    /// `limits[].scope.model.display_name`. Matched exactly — if
+    /// Anthropic renames it, the Fable gauge disappears rather than
+    /// showing another model's numbers.
+    private static let fableDisplayName = "Fable"
 
     public func fetchSnapshot() async throws -> UsageSnapshot {
         var req = URLRequest(url: endpoint)
@@ -85,6 +117,17 @@ public struct JSONUsageScraper: UsageScraper {
             let now = Date()
             let used5h = Int(((r.five_hour?.utilization ?? 0) * 100).rounded())
             let usedWeek = Int(((r.seven_day?.utilization ?? 0) * 100).rounded())
+
+            // Fable is a per-model weekly limit. Match on BOTH the kind
+            // and the model display name — matching kind alone would
+            // pick up any future scoped limit (Opus, Cowork, …) and
+            // label it Fable.
+            let fable = r.limits?.first {
+                $0.kind == "weekly_scoped"
+                    && $0.scope?.model?.display_name == Self.fableDisplayName
+            }
+            let usedFable = fable?.percent.map { Int(($0 * 100).rounded()) }
+
             return UsageSnapshot(
                 timestamp: now,
                 // The /usage endpoint doesn't include the plan tier;
@@ -98,7 +141,10 @@ public struct JSONUsageScraper: UsageScraper {
                 ceilingWeek: 10_000,
                 resetTimeWeek: r.seven_day?.resets_at ?? now.addingTimeInterval(7 * 86400),
                 sourceVersion: sourceVersion,
-                raw: data)
+                raw: data,
+                usedFable: usedFable,
+                resetTimeFable: fable?.resets_at,
+                fableIsActive: fable?.is_active ?? false)
         } catch {
             throw ScrapeError.schemaDrift(version: sourceVersion, payload: data)
         }
